@@ -1,0 +1,15 @@
+{
+  "name": "bacnet",
+  "version": "0.0.1",
+  "scripts": {
+    "configure": "node-gyp configure",
+    "build": "node-gyp build",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "node-gyp": "^3.2.0"
+  },
+  "dependencies": {
+    "nan": "^2.1.0"
+  }
+}
