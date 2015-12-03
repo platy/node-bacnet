@@ -30,6 +30,8 @@ it is not covered. For simplicity we would probably release the wrapper also und
 - We will want some high load tests to detect memory leaks and incorrect threading.
 - It may be possible to test stuff on the loopback interface - in which case it would be useful if we can instantiate
   multiple devices on different ports.
+- Many of the files I've included in the build are probably not needed and can be removed to reduce install time
+- We may want to switch to a tag of the bacnet-stack instead of the random head ont he day I started the project
 
 ## Operations needed
 
