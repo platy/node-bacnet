@@ -26,12 +26,15 @@ it is not covered. For simplicity we would probably release the wrapper also und
 - To be low level, the commands will be fire-and-forget, the responses will come back through an event emitter - we 
   haven't looked at the api for those yet.
 - We need to consider that nodejs runs native code in a thread pool and the c code is probably designed to be single 
-  threaded - so Nodejs's concurrency controls will probably be relevant.
+  threaded - so Nodejs's concurrency controls will probably be relevant. The io in bip.h is blocking, I imagine having a 
+  thread for sending outgoing messages and a thread listening for incoming messages. An alternative is to use libuv but
+  that might invlove more changes than just writing a port as the callers of bip may require blocking
 - We will want some high load tests to detect memory leaks and incorrect threading.
 - It may be possible to test stuff on the loopback interface - in which case it would be useful if we can instantiate
   multiple devices on different ports.
 - Many of the files I've included in the build are probably not needed and can be removed to reduce install time
-- We may want to switch to a tag of the bacnet-stack instead of the random head ont he day I started the project
+- We may want to switch to a tag of the bacnet-stack instead of the random head on the day I started the project
+- 
 
 ## Operations needed
 
