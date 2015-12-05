@@ -6,36 +6,6 @@
 #include "txbuf.h"
 #include "whois.h"
 
-static uint32_t Database_Revision = 0;
-static uint32_t Object_Instance_Number = 260001;
-
-/*
- * Shortcut for incrementing database revision as this is potentially
- * the most common operation if changing object names and ids is
- * implemented.
- */
-void Device_Inc_Database_Revision(
-    void)
-{
-    Database_Revision++;
-}
-
-bool Device_Set_Object_Instance_Number(
-    uint32_t object_id)
-{
-    bool status = true; /* return value */
-
-    if (object_id <= BACNET_MAX_INSTANCE) {
-        /* Make the change and update the database revision */
-        Object_Instance_Number = object_id;
-        Device_Inc_Database_Revision();
-    } else
-        status = false;
-
-    return status;
-}
-
-/** @file s_whois.c  Send a Who-Is request. */
 
 /** Send a Who-Is request to a remote network for a specific device, a range,
  * or any device.
