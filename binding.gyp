@@ -8,6 +8,7 @@
         "src/functions.cc",
         "src/basicwhois.c",
         "src/init.c",
+        "src/listen.c",
         "bacnet-stack/ports/bsd/bip-init.c",
         "bacnet-stack/src/apdu.c",
         "bacnet-stack/src/npdu.c",

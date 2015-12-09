@@ -11,6 +11,10 @@ NAN_MODULE_INIT(InitAll) {
 
   Nan::Set(target, Nan::New("whois").ToLocalChecked(),
     Nan::GetFunction(Nan::New<FunctionTemplate>(whois)).ToLocalChecked());
+  Nan::Set(target, Nan::New("listen").ToLocalChecked(),
+    Nan::GetFunction(Nan::New<FunctionTemplate>(listen)).ToLocalChecked());
+  Nan::Set(target, Nan::New("initDevice").ToLocalChecked(),
+    Nan::GetFunction(Nan::New<FunctionTemplate>(initDevice)).ToLocalChecked());
 }
 
 NODE_MODULE(binding, InitAll)

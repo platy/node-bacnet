@@ -65,8 +65,8 @@ In order to simulate devices we will also want these the opposite way around.
 ## Priority
 
 0. Send Whois messages
-1. Receive iam messages and translate to js (events?)
-2. Respond to whois messages
+1. Respond to whois messages
+2. Receive iam messages and translate to js (events?)
 3. Create an integration test setup
 9. Read list of objects
 3. Create cross-platform tests on travisci

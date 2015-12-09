@@ -5,6 +5,8 @@
 #include <iostream>
 #include "functions.h"
 #include "basicwhois.h"
+#include "listen.h"
+#include "init.h"
 
 
 // whois([destination], [min_id , [max_id]])
@@ -16,8 +18,6 @@ NAN_METHOD(whois) {
   char* dest_mac = 0;
   long min_id = 0;
   long max_id = 4194303;
-
-  unsigned int target_info = 0;
 
   for (int argi = 0; argi < info.Length(); argi++) {
       if (argi == 0 && info[0]->IsString()) { // address object parameter
@@ -56,5 +56,19 @@ NAN_METHOD(whois) {
   }
   int ret = whoisBroadcast(mac, dest_net, dest_mac, min_id, max_id);
   std::cout << "returning " << ret << "\n";
+  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+}
+
+NAN_METHOD(listen) {
+  v8::Isolate* isolate = info.GetIsolate();
+  v8::HandleScope scope(isolate);
+  listenLoop();
+  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+}
+
+NAN_METHOD(initDevice) {
+  v8::Isolate* isolate = info.GetIsolate();
+  v8::HandleScope scope(isolate);
+  init_device_service_handlers();
   info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
 }

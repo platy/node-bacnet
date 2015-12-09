@@ -1,6 +1,6 @@
 
-#ifndef BASIC_INIT_H
-#define BASIC_INIT_H
+#ifndef LISTEN_H
+#define LISTEN_H
 
 #include <stdint.h>
 
@@ -9,8 +9,7 @@
 extern "C" {
 #endif
 
-void init_bacnet();
-void init_device_service_handlers();
+void listenLoop();
 
 #ifdef __cplusplus
 }
