@@ -2,13 +2,12 @@
   "targets": [
     {
       "target_name": "binding",
+      "cflags": ["-std=c++11"],
       "sources": [
         "src/module.cc",
         "src/functions.cc",
         "src/basicwhois.c",
         "src/init.c",
-        "src/dlenv.c",
-        "src/txbuf.c",
         "bacnet-stack/ports/bsd/bip-init.c",
         "bacnet-stack/src/apdu.c",
         "bacnet-stack/src/npdu.c",
@@ -60,12 +59,18 @@
         "bacnet-stack/src/readrange.c",
         "bacnet-stack/src/timestamp.c",
         "bacnet-stack/src/lighting.c",
-        "bacnet-stack/src/version.c"
+        "bacnet-stack/src/version.c",
+        "bacnet-stack/demo/object/bi.c",
+        "bacnet-stack/demo/object/bo.c",
+        "bacnet-stack/demo/object/device-client.c",
+        "<!@(ls -1 bacnet-stack/demo/handler/*.c)"
       ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
         "bacnet-stack/include",
-        "bacnet-stack/ports/bsd"
+        "bacnet-stack/ports/bsd",
+        "bacnet-stack/demo/object",
+        "bacnet-stack/demo/handler"
       ]
     }
   ]

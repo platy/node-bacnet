@@ -4,7 +4,7 @@
   "scripts": {
     "configure": "node-gyp configure",
     "build": "node-gyp build",
-    "test": "mocha"
+    "test": "node test/test.js"
   },
   "devDependencies": {
     "node-gyp": "^3.2.0"
