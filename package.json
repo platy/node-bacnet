@@ -2,8 +2,8 @@
   "name": "bacnet",
   "version": "0.0.1",
   "scripts": {
-    "configure": "node-gyp configure",
-    "build": "node-gyp build",
+    "configure": "node-gyp configure && npm build",
+    "build": "node-gyp build && npm test",
     "test": "node test/test.js"
   },
   "devDependencies": {

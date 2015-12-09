@@ -28,7 +28,7 @@ it is not covered. For simplicity we would probably release the wrapper also und
 - We need to consider that nodejs runs native code in a thread pool and the c code is probably designed to be single 
   threaded - so Nodejs's concurrency controls will probably be relevant. The io in bip.h is blocking, I imagine having a 
   thread for sending outgoing messages and a thread listening for incoming messages. An alternative is to use libuv but
-  that might invlove more changes than just writing a port as the callers of bip may require blocking
+  that might involve more changes than just writing a port as the callers of bip may require blocking
 - We will want some high load tests to detect memory leaks and incorrect threading.
 - It may be possible to test stuff on the loopback interface - in which case it would be useful if we can instantiate
   multiple devices on different ports.
@@ -54,3 +54,29 @@ And to receive these messages:
 - cov notification
 
 In order to simulate devices we will also want these the opposite way around.
+
+## Riskiest assumptions
+
+- we can get it to work on arm and x86
+- we can get it to work on osx and linux (and windows)
+- we can get adequate control from js to this c code which is written to be modified for purpose as a bacnet device
+- we can make split synchronous c code and make calls to js in between
+
+## Priority
+
+0. Send Whois messages
+1. Receive iam messages and translate to js (events?)
+2. Respond to whois messages
+3. Create an integration test setup
+9. Read list of objects
+3. Create cross-platform tests on travisci
+4. Get cross-platform to work
+5. Get cross-architecture tests running
+6. Get cross-architecture to work
+7. Add configuration for port, interface, device number, vendor id, etc.
+8. Improve tests (try to get 2 devices running under the same process)
+10. Read properties
+11. Write properties
+12. Subscribe to COV
+13. Add stress tests to seek memory leaks / socket problems
+14. Try again to get 2 devices running on 1 process 
