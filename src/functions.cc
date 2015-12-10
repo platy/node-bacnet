@@ -7,6 +7,7 @@
 #include "basicwhois.h"
 #include "listen.h"
 #include "init.h"
+#include "listenable.h"
 
 
 // whois([destination], [min_id , [max_id]])
@@ -16,12 +17,13 @@ NAN_METHOD(whois) {
   char* mac = 0;
   long dest_net = -1;
   char* dest_mac = 0;
-  long min_id = 0;
-  long max_id = 4194303;
+  int32_t min_id = -1;
+  int32_t max_id = -1;
+  int idOffset = 0; // moves the arg position of the min & max depending on whether the address field is given
 
-  for (int argi = 0; argi < info.Length(); argi++) {
-      if (argi == 0 && info[0]->IsString()) { // address object parameter
-          Nan::Utf8String address(info[0].As<v8::String>());
+  if (info.Length() >= 1 && info[0]->IsString()) { // address object parameter
+    idOffset = 1;
+    Nan::Utf8String address(info[0].As<v8::String>());
 //          if (address->Has(0, "mac")) {
               mac = *address;
 //          }
@@ -40,29 +42,43 @@ NAN_METHOD(whois) {
 //                  }
 //              }
 //          }
-//      } else {
-//          if (target_info == 0) {
-//              Target_Object_Instance_Min = Target_Object_Instance_Max =
-//                  strtol(argv[argi], NULL, 0);
-//              target_info++;
-//          } else if (target_info == 1) {
-//              Target_Object_Instance_Max = strtol(argv[argi], NULL, 0);
-//              target_info++;
-//          } else {
-//              print_usage(filename);
-//              return 1;
-//          }
-      }
+  }
+  if (info.Length() - idOffset > 0) {
+    min_id = max_id = info[idOffset]->ToInt32()->Value();
+  }
+  if (info.Length() - idOffset == 2) {
+    max_id = info[idOffset + 1]->ToInt32()->Value();
   }
   int ret = whoisBroadcast(mac, dest_net, dest_mac, min_id, max_id);
-  std::cout << "returning " << ret << "\n";
-  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+  v8::Local<v8::Number> retval = v8::Number::New(isolate, ret);
+  info.GetReturnValue().Set(retval);
 }
 
 NAN_METHOD(listen) {
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
-  listenLoop();
+
+//  emitterIsolate = isolate;
+//  emitter = info.This()->Get(v8::String::NewFromUtf8(isolate, "ee")).As<v8::Object>();
+//
+//  v8::Handle<v8::Value> argv[2] = {
+//    v8::String::NewFromUtf8(isolate, "iam"), // event name
+//    v8::String::NewFromUtf8(isolate, "listen")  // argument
+//  };
+//  Nan::MakeCallback(emitter, "emit", 2, argv);
+
+  listenLoop(0);
+  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+}
+
+NAN_METHOD(initClient) {
+  v8::Isolate* isolate = info.GetIsolate();
+  v8::HandleScope scope(isolate);
+
+  v8::Local<v8::Object> localIamCallback = info[0]->ToObject();
+  emitterSetListener(isolate, localIamCallback);
+
+  init_service_handlers();
   info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
 }
 

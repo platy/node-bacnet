@@ -2,13 +2,15 @@
   "targets": [
     {
       "target_name": "binding",
-      "cflags": ["-std=c++11"],
+      "defines": ["PRINT_ENABLED=1"],
       "sources": [
         "src/module.cc",
         "src/functions.cc",
+        "src/emitter.cc",
         "src/basicwhois.c",
         "src/init.c",
         "src/listen.c",
+        "src/h_iam.c",
         "bacnet-stack/ports/bsd/bip-init.c",
         "bacnet-stack/src/apdu.c",
         "bacnet-stack/src/npdu.c",
@@ -82,10 +84,18 @@
         "bacnet-stack/demo/object/piv.c",
         "bacnet-stack/demo/object/schedule.c",
         "bacnet-stack/demo/object/trendlog.c",
-        "<!@(ls -1 bacnet-stack/demo/handler/*.c)"
+        "bacnet-stack/demo/handler/h_rp.c",
+        "bacnet-stack/demo/handler/h_whois.c",
+        "bacnet-stack/demo/handler/h_npdu.c",
+        "bacnet-stack/demo/handler/s_whois.c",
+        "bacnet-stack/demo/handler/s_iam.c",
+        "bacnet-stack/demo/handler/dlenv.c",
+        "bacnet-stack/demo/handler/noserv.c",
+        "bacnet-stack/demo/handler/txbuf.c"
       ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
+        "include",
         "bacnet-stack/include",
         "bacnet-stack/ports/bsd",
         "bacnet-stack/demo/object",

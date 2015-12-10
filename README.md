@@ -73,10 +73,14 @@ In order to simulate devices we will also want these the opposite way around.
 4. Get cross-platform to work
 5. Get cross-architecture tests running
 6. Get cross-architecture to work
+6. Cross node versions
 7. Add configuration for port, interface, device number, vendor id, etc.
 8. Improve tests (try to get 2 devices running under the same process)
 10. Read properties
 11. Write properties
 12. Subscribe to COV
-13. Add stress tests to seek memory leaks / socket problems
+13. Add stress tests to seek memory leaks / socket problems / queue exhaustion (events added faster than consumed in either direction)
 14. Try again to get 2 devices running on 1 process 
+15. Enable writing of the deviceid using WriteProperty - so it can be configured by the installer
+16. use c++11
+17. separate the code into modules

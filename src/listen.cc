@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <time.h>
+#include <v8.h>
+#include <uv.h>
 #include "datalink.h"
 #include "handlers.h"
 
@@ -8,7 +10,7 @@ static bool Error_Detected = false;
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 
-void listenLoop() {
+void runListen(void *arg) {
   BACNET_ADDRESS src = {
       0
   };  /* address where message came from */
@@ -41,4 +43,9 @@ void listenLoop() {
       /* keep track of time for next check */
       last_seconds = current_seconds;
   }
+}
+
+void listenLoop(v8::Isolate* isolate) {
+  uv_thread_t listen_thread_id;
+  uv_thread_create(&listen_thread_id, runListen, 0);
 }

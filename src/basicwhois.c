@@ -1,5 +1,4 @@
 #include "basicwhois.h"
-
 #include <stdio.h>
 #include "address.h"
 #include "datalink.h"

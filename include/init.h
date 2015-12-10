@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 void init_bacnet();
+void init_service_handlers();
 void init_device_service_handlers();
 
 #ifdef __cplusplus
