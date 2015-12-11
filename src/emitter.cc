@@ -26,10 +26,11 @@ static void EmitAsync(uv_work_t *req) {
 Local<Object> bacnetIPToJ(Isolate * isolate, uint8_t *mac, uint8_t mac_len) {
     Local<Object> address = Object::New(isolate);
     std::ostringstream stringStream;
+    uint16_t port = (mac[4] << 8) + mac[5];
     stringStream << (int)mac[0] << '.' << (int)mac[1] << '.' << (int)mac[2] << '.' << (int)mac[3];
     std::string copyOfStr = stringStream.str();
     address->Set(String::NewFromUtf8(isolate, "ip"), String::NewFromUtf8(isolate, copyOfStr.c_str()));
-//    address->Set(String::NewFromUtf8(isolate, "port"), Integer->NewFromUnsigned(isolate, 0));
+    address->Set(String::NewFromUtf8(isolate, "port"), Integer::NewFromUnsigned(isolate, port));
     return address;
 }
 
