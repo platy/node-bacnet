@@ -1,4 +1,4 @@
-const EventEmitter = require('events')
+const EventEmitter = require('events').EventEmitter
 const bacnetAddon = require('./build/Release/binding.node')
 
 const bacnetInterface = new EventEmitter()

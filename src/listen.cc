@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <time.h>
-#include <v8.h>
 #include <uv.h>
 #include "datalink.h"
 #include "handlers.h"
@@ -45,7 +44,7 @@ void runListen(void *arg) {
   }
 }
 
-void listenLoop(v8::Isolate* isolate) {
+void listenLoop() {
   uv_thread_t listen_thread_id;
   uv_thread_create(&listen_thread_id, runListen, 0);
 }

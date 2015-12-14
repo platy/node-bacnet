@@ -5,6 +5,6 @@
 #include <stdint.h>
 
 
-void listenLoop(v8::Isolate* isolate);
+void listenLoop();
 
 #endif

@@ -1,6 +1,7 @@
 // for addon
 #include <node.h>
 #include <v8.h>
+#include <nan.h>
 #include <string>
 #include <iostream>
 #include "functions.h"
@@ -12,8 +13,6 @@
 
 // whois([destination], [min_id , [max_id]])
 NAN_METHOD(whois) {
-  v8::Isolate* isolate = info.GetIsolate();
-  v8::HandleScope scope(isolate);
   char* mac = 0;
   long dest_net = -1;
   char* dest_mac = 0;
@@ -50,32 +49,24 @@ NAN_METHOD(whois) {
     max_id = info[idOffset + 1]->ToInt32()->Value();
   }
   int ret = whoisBroadcast(mac, dest_net, dest_mac, min_id, max_id);
-  v8::Local<v8::Number> retval = v8::Number::New(isolate, ret);
+  v8::Local<v8::Number> retval = Nan::New(ret);
   info.GetReturnValue().Set(retval);
 }
 
 NAN_METHOD(listen) {
-  v8::Isolate* isolate = info.GetIsolate();
-  v8::HandleScope scope(isolate);
-
-  listenLoop(0);
-  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+  listenLoop();
+  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(initClient) {
-  v8::Isolate* isolate = info.GetIsolate();
-  v8::HandleScope scope(isolate);
-
   v8::Local<v8::Object> localEventEmitter = info[0]->ToObject();
-  eventEmitterSet(isolate, localEventEmitter);
+  eventEmitterSet(localEventEmitter);
 
   init_service_handlers();
-  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(initDevice) {
-  v8::Isolate* isolate = info.GetIsolate();
-  v8::HandleScope scope(isolate);
   init_device_service_handlers();
-  info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
+  info.GetReturnValue().Set(Nan::Undefined());
 }

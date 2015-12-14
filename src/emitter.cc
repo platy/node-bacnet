@@ -2,6 +2,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <v8.h>
+#include <nan.h>
 #include <uv.h>
 #include "bacaddr.h"
 #include "emitter.h"
@@ -10,7 +11,7 @@
 
 using namespace v8;
 
-static Persistent<Object> eventEmitter;
+static Nan::Persistent<Object> eventEmitter;
 
 struct IamEvent {
   uv_work_t  request;
@@ -25,49 +26,46 @@ struct IamEvent {
 static void EmitAsync(uv_work_t *req) {
 }
 
-Local<Object> bacnetIPToJ(Isolate * isolate, uint8_t *mac, uint8_t mac_len) {
-    Local<Object> address = Object::New(isolate);
+Local<Object> bacnetIPToJ(uint8_t *mac, uint8_t mac_len) {
+    Local<Object> address = Nan::New<Object>();
     std::ostringstream stringStream;
     uint16_t port = (mac[4] << 8) + mac[5];
     stringStream << (int)mac[0] << '.' << (int)mac[1] << '.' << (int)mac[2] << '.' << (int)mac[3];
     std::string copyOfStr = stringStream.str();
-    address->Set(String::NewFromUtf8(isolate, "ip"), String::NewFromUtf8(isolate, copyOfStr.c_str()));
-    address->Set(String::NewFromUtf8(isolate, "port"), Integer::NewFromUnsigned(isolate, port));
+    Nan::Set(address, Nan::New("ip").ToLocalChecked(), Nan::New(copyOfStr.c_str()).ToLocalChecked());
+    Nan::Set(address, Nan::New("port").ToLocalChecked(), Nan::New(port));
     return address;
 }
 
-Local<Object> bacnetAddressToJ(Isolate * isolate, BACNET_ADDRESS *src) {
-    Local<Object> address = Object::New(isolate);
-    address->Set(String::NewFromUtf8(isolate, "mac"), bacnetIPToJ(isolate, src->mac, src->mac_len));
+Local<Object> bacnetAddressToJ(BACNET_ADDRESS *src) {
+    Local<Object> address = Nan::New<Object>();
+    Nan::Set(address, Nan::New("mac").ToLocalChecked(), bacnetIPToJ(src->mac, src->mac_len));
     assert(!src->len); // TODO support hw addresses other than broadcast
-//    address->Set(String::NewFromUtf8(isolate, "hwaddr"), Undefined(isolate));
-    address->Set(String::NewFromUtf8(isolate, "network"), Integer::NewFromUnsigned(isolate, src->net));
+//    Nan::Set(address, Nan::New("hwaddr").ToLocalChecked(), Nan::Undefined());
+    Nan::Set(address, Nan::New("network").ToLocalChecked(), Nan::New(src->net));
     return address;
 }
 
-Local<Object> iamToJ(Isolate * isolate, IamEvent *work) {
-    Local<Object> iamEvent = Object::New(isolate);
-    iamEvent->Set(String::NewFromUtf8(isolate, "objectId"), Integer::NewFromUnsigned(isolate, work->device_id));
-    iamEvent->Set(String::NewFromUtf8(isolate, "vendorId"), Integer::NewFromUnsigned(isolate, work->vendor_id));
-    iamEvent->Set(String::NewFromUtf8(isolate, "segmentation"), Integer::NewFromUnsigned(isolate, work->segmentation));
-    iamEvent->Set(String::NewFromUtf8(isolate, "src"), bacnetAddressToJ(isolate, work->src));
+Local<Object> iamToJ(IamEvent *work) {
+    Local<Object> iamEvent = Nan::New<Object>();
+    Nan::Set(iamEvent, Nan::New("objectId").ToLocalChecked(), Nan::New(work->device_id));
+    Nan::Set(iamEvent, Nan::New("vendorId").ToLocalChecked(), Nan::New(work->vendor_id));
+    Nan::Set(iamEvent, Nan::New("segmentation").ToLocalChecked(), Nan::New(work->segmentation));
+    Nan::Set(iamEvent, Nan::New("src").ToLocalChecked(), bacnetAddressToJ(work->src));
     return iamEvent;
 }
 
 // called by libuv in event loop when async function completes
 static void EmitAsyncComplete(uv_work_t *req,int status) {
-    Isolate * isolate = Isolate::GetCurrent();
-    HandleScope handleScope(isolate);
-
     IamEvent *work = static_cast<IamEvent *>(req->data);
 
-    Local<Object> iamEvent = iamToJ(isolate, work);
-    Handle<Value> argv[] = {
-        String::NewFromUtf8(isolate, "iam"),
+    Local<Object> iamEvent = iamToJ(work);
+    Local<Value> argv[] = {
+        Nan::New("iam").ToLocalChecked(),
         iamEvent
     };
 
-    Local<Object> localEventEmitter = Local<Object>::New(isolate, eventEmitter);
+    Local<Object> localEventEmitter = Nan::New(eventEmitter);
     Nan::MakeCallback(localEventEmitter, "emit", 2, argv);
 
     delete work;
@@ -86,6 +84,6 @@ void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t 
   uv_queue_work(uv_default_loop(),&event->request,EmitAsync,EmitAsyncComplete);
 }
 
-void eventEmitterSet(Isolate* isolate, Local<Object> localEventEmitter) {
-    eventEmitter.Reset(isolate, localEventEmitter);
+void eventEmitterSet(Local<Object> localEventEmitter) {
+    eventEmitter.Reset(localEventEmitter);
 }
