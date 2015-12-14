@@ -1,6 +1,6 @@
 const r = require('../bacnet.js');
 
-r.initClient(function(iam) {
+r.on('iam', function(iam) {
   console.log("iam: ", iam);
 });
 r.initDevice();

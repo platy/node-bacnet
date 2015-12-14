@@ -58,15 +58,6 @@ NAN_METHOD(listen) {
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
 
-//  emitterIsolate = isolate;
-//  emitter = info.This()->Get(v8::String::NewFromUtf8(isolate, "ee")).As<v8::Object>();
-//
-//  v8::Handle<v8::Value> argv[2] = {
-//    v8::String::NewFromUtf8(isolate, "iam"), // event name
-//    v8::String::NewFromUtf8(isolate, "listen")  // argument
-//  };
-//  Nan::MakeCallback(emitter, "emit", 2, argv);
-
   listenLoop(0);
   info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));
 }
@@ -75,8 +66,8 @@ NAN_METHOD(initClient) {
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
 
-  v8::Local<v8::Object> localIamCallback = info[0]->ToObject();
-  emitterSetListener(isolate, localIamCallback);
+  v8::Local<v8::Object> localEventEmitter = info[0]->ToObject();
+  eventEmitterSet(isolate, localEventEmitter);
 
   init_service_handlers();
   info.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "returned"));

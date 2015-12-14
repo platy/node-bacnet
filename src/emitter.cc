@@ -10,7 +10,7 @@
 
 using namespace v8;
 
-static Persistent<Object> listener;
+static Persistent<Object> eventEmitter;
 
 struct IamEvent {
   uv_work_t  request;
@@ -62,12 +62,13 @@ static void EmitAsyncComplete(uv_work_t *req,int status) {
     IamEvent *work = static_cast<IamEvent *>(req->data);
 
     Local<Object> iamEvent = iamToJ(isolate, work);
-    Handle<Value> argv[] = { iamEvent };
+    Handle<Value> argv[] = {
+        String::NewFromUtf8(isolate, "iam"),
+        iamEvent
+    };
 
-    // execute the callback
-    // https://stackoverflow.com/questions/13826803/calling-javascript-function-from-a-c-callback-in-v8/28554065#28554065
-    Local<Object> localCallback = Local<Object>::New(isolate, listener);
-    localCallback->CallAsFunction(isolate->GetCurrentContext()->Global(), 1, argv);
+    Local<Object> localEventEmitter = Local<Object>::New(isolate, eventEmitter);
+    Nan::MakeCallback(localEventEmitter, "emit", 2, argv);
 
     delete work;
 }
@@ -85,6 +86,6 @@ void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t 
   uv_queue_work(uv_default_loop(),&event->request,EmitAsync,EmitAsyncComplete);
 }
 
-void emitterSetListener(Isolate* isolate, Local<Object> localListener) {
-    listener.Reset(isolate, localListener);
+void eventEmitterSet(Isolate* isolate, Local<Object> localEventEmitter) {
+    eventEmitter.Reset(isolate, localEventEmitter);
 }
