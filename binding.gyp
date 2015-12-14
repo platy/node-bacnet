@@ -11,7 +11,6 @@
         "src/init.c",
         "src/listen.c",
         "src/h_iam.c",
-        "bacnet-stack/ports/bsd/bip-init.c",
         "bacnet-stack/src/apdu.c",
         "bacnet-stack/src/npdu.c",
         "bacnet-stack/src/bacdcode.c",
@@ -97,9 +96,32 @@
         "<!(node -e \"require('nan')\")",
         "include",
         "bacnet-stack/include",
-        "bacnet-stack/ports/bsd",
         "bacnet-stack/demo/object",
         "bacnet-stack/demo/handler"
+      ],
+      "conditions": [
+        [
+          "OS=='mac'",
+          {
+            "sources": [
+              "bacnet-stack/ports/bsd/bip-init.c"
+            ],
+            "include_dirs": [
+              "bacnet-stack/ports/bsd"
+            ]
+          }
+        ],
+        [
+          "OS=='linux'",
+          {
+            "sources": [
+              "bacnet-stack/ports/linux/bip-init.c"
+            ],
+            "include_dirs": [
+              "bacnet-stack/ports/linux"
+            ]
+          }
+        ]
       ]
     }
   ]
