@@ -85,3 +85,8 @@ In order to simulate devices we will also want these the opposite way around.
 15. Enable writing of the deviceid using WriteProperty - so it can be configured by the installer
 16. use c++11
 17. separate the code into modules
+
+## Useful BACnet documentation
+
+- [BACnet device IDs](http://kargs.net/BACnet/Foundations2012-BACnetDeviceID.pdf)
+- [Segmentation in BACnet](http://www.chipkin.com/segementation-in-bacnet/)

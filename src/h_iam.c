@@ -68,7 +68,7 @@ void handler_i_am_add(
             src->mac[3], src->mac[4], src->mac[5]);
 #endif
         address_add(device_id, max_apdu, src);
-        emit_iam(device_id, max_apdu, src);
+        emit_iam(device_id, max_apdu, segmentation, vendor_id, src);
     } else {
 #if PRINT_ENABLED
         fprintf(stderr, ", but unable to decode it.\n");

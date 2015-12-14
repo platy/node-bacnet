@@ -16,6 +16,8 @@ struct IamEvent {
   uv_work_t  request;
   uint32_t device_id;
   unsigned max_apdu;
+  int segmentation;
+  uint16_t vendor_id;
   BACNET_ADDRESS * src;
 };
 
@@ -46,6 +48,8 @@ Local<Object> bacnetAddressToJ(Isolate * isolate, BACNET_ADDRESS *src) {
 Local<Object> iamToJ(Isolate * isolate, IamEvent *work) {
     Local<Object> iamEvent = Object::New(isolate);
     iamEvent->Set(String::NewFromUtf8(isolate, "objectId"), Integer::NewFromUnsigned(isolate, work->device_id));
+    iamEvent->Set(String::NewFromUtf8(isolate, "vendorId"), Integer::NewFromUnsigned(isolate, work->vendor_id));
+    iamEvent->Set(String::NewFromUtf8(isolate, "segmentation"), Integer::NewFromUnsigned(isolate, work->segmentation));
     iamEvent->Set(String::NewFromUtf8(isolate, "src"), bacnetAddressToJ(isolate, work->src));
     return iamEvent;
 }
@@ -68,11 +72,13 @@ static void EmitAsyncComplete(uv_work_t *req,int status) {
     delete work;
 }
 
-void emit_iam(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS * src) {
+void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t vendor_id, BACNET_ADDRESS * src) {
   IamEvent * event = new IamEvent();
   event->request.data = event;
   event->device_id = device_id;
   event->max_apdu = max_apdu;
+  event->segmentation = segmentation;
+  event->vendor_id = vendor_id;
   event->src = src;
 
   // kick of the worker thread
