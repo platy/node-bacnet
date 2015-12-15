@@ -1,4 +1,5 @@
 const fork = require('child_process').fork
+const os = require('os')
 
 function runningDeviceMessage(message) {
   this.emit(message.type, message.event)
@@ -22,4 +23,24 @@ exports.deviceProcess = function deviceProcess(config) {
     device.on('message', runningDeviceMessage)
   })
   return device
+}
+
+
+exports.getSuitableInterface = function getSuitableInterface() {
+  const ifaces = os.networkInterfaces()
+  for(var ifaceName of Object.keys(ifaces)) {
+    for(var address of ifaces[ifaceName]) {
+      if (!address.internal &&    // It would be nice to use the loopback interface, but it doesn't support broadcast which is how iam's are sent
+        address.family === 'IPv4')
+        return ifaceName
+    }
+  }
+}
+exports.getInterfaceIP = function getInterfaceIP(ifaceName) {
+  const ifaces = os.networkInterfaces()
+  for(var address of ifaces[ifaceName]) {
+    if (!address.internal &&
+      address.family === 'IPv4')  // I think the bacnet library doesn't support ipv6 right now
+      return address.address
+  }
 }
