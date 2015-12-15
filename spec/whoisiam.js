@@ -21,11 +21,14 @@ const ifaceIp = getSuitableInterfaceAndIP()
 const iface = ifaceIp[0]
 const ip = ifaceIp[1]
 
-var r
-
 describe('Whois / Iam', function() {
+  var device
+  afterEach('Exit the device fork', function(done) {
+    device.once('exit', done)
+    device.exit()
+  })
   it('can reply to its own whois and iam messages with default settings', function(done) {
-    const device = tools.deviceProcess({
+    device = tools.deviceProcess({
       datalink: {
         iface: iface
       },
@@ -47,12 +50,11 @@ describe('Whois / Iam', function() {
           network: 0
         }
       )
-      device.exit()
+      done()
     });
-    device.once('exit', done)
   })
   it('can reply to its own whois and iam messages with default settings', function(done) {
-    const device = tools.deviceProcess({
+    device = tools.deviceProcess({
       datalink: {
         iface: iface,
         ip_port: 47809
@@ -75,10 +77,8 @@ describe('Whois / Iam', function() {
           network: 0
         }
       )
-      device.exit()
       done()
     });
-    device.once('exit', done)
   })
 
   xit('cannot reply to anothers whois and iam messages on a different port as the iam reply is broadcast on the listening port', function(done) {
