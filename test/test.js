@@ -3,9 +3,6 @@ const r = require('../bacnet.js').init();
 r.on('iam', function(iam) {
   console.log("iam: ", iam);
 });
-r.initDevice();
-
-r.listen();
 
 r.whois('127.0.0.1', 260001, 260003)
 r.whois('127.0.0.1', 260001, 260003)

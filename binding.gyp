@@ -11,6 +11,7 @@
         "src/init.c",
         "src/listen.c",
         "src/h_iam.c",
+        "src/h_errors.c",
         "bacnet-stack/src/apdu.c",
         "bacnet-stack/src/npdu.c",
         "bacnet-stack/src/bacdcode.c",

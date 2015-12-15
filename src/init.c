@@ -9,6 +9,7 @@
 #include "apdu.h"
 #include "datalink.h"
 #include "handlers.h"
+#include "errorhandlers.h"
 #include "tsm.h"
 
 /* BBMD variables */
@@ -17,9 +18,7 @@ static long bbmd_port = 0xBAC0;
 static long bbmd_address = 0;
 static int bbmd_result = 0;
 
-void init_service_handlers(
-    void)
-{
+void init_service_handlers() {
     fprintf(stderr, "Initialise client handlers\n");
     Device_Init(NULL);
     /* set the handler for all the services we don't implement
@@ -29,19 +28,14 @@ void init_service_handlers(
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-//    /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
-//    /* handle any errors coming back */
-//    apdu_set_abort_handler(MyAbortHandler);
-//    apdu_set_reject_handler(MyRejectHandler);
+    /* handle any errors coming back */
+    apdu_set_abort_handler(handler_abort);
+    apdu_set_reject_handler(handler_reject);
 }
 
-void init_device_service_handlers(
-    void)
-{
+void init_device_service_handlers() {
     fprintf(stderr, "Initialise device handlers\n");
-    /* we need to handle who-is
-       to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
 }
 
@@ -59,8 +53,7 @@ void init_device_service_handlers(
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-int dlenv_register_as_foreign_device(struct BACNET_CONFIGURATION* config)
-{
+int dlenv_register_as_foreign_device(struct BACNET_CONFIGURATION* config) {
     int retval = 0;
     if (config->bbmd_port) {
         bbmd_port = config->bbmd_port;

@@ -69,28 +69,29 @@ In order to simulate devices we will also want these the opposite way around.
 1. Respond to whois messages
 2. Receive iam messages and translate to js (events?)
 3. Create an integration test setup
-9. Read list of objects
-3. Create cross-platform tests on travisci
-4. Get cross-platform to work
-5. Get cross-architecture tests running
-6. Get cross-architecture to work
-6. Cross node versions
-7. Add configuration for port, interface, device number, vendor id, etc.
-8. Improve tests (try to get 2 devices running under the same process)
+4. Add configuration for port, interface, device number, vendor id, etc.
+5. Read list of objects
+6. Improve tests (try to get 2 devices running under the same process)
+7. separate the code into modules
+8. use c++11
+9. Create cross-platform tests on travisci
+9. Cross node versions
 10. Read properties
 11. Write properties
 12. Subscribe to COV
-13. Add stress tests to seek memory leaks / socket problems / queue exhaustion (events added faster than consumed in either direction)
-14. Try again to get 2 devices running on 1 process
+13. Try again to get 2 devices running on 1 process
+14. Add stress tests to seek memory leaks / socket problems / queue exhaustion (events added faster than consumed in either direction)
 15. Enable writing of the deviceid using WriteProperty - so it can be configured by the installer
-16. use c++11
-17. separate the code into modules
+16. Get cross-architecture tests running
+17. Get cross-architecture to work
+18. Make initialisation non-blocking
 
 ## Things we're not currently trying to support
 
 - non-ip datalinks
 - bbmp / remote device registration
-- non-core services
+- services other than those above
+- bacnet routers
 
 ## Useful BACnet documentation
 

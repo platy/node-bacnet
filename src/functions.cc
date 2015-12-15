@@ -55,7 +55,6 @@ NAN_METHOD(whois) {
 
 NAN_METHOD(listen) {
   listenLoop();
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(initClient) {
@@ -63,10 +62,8 @@ NAN_METHOD(initClient) {
   eventEmitterSet(localEventEmitter);
 
   init_service_handlers();
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(initDevice) {
   init_device_service_handlers();
-  info.GetReturnValue().Set(Nan::Undefined());
 }

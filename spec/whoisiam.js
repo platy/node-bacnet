@@ -28,22 +28,24 @@ const source = {
   network: 0
 }
 
-// TODO configure the bacnet device with these values
-
 describe('Whois / Iam', function() {
+  var r
+  before('create device', function() {
+    r = require('../bacnet.js').init({
+      datalink: {
+        iface: iface,
+        ip_port: undefined,
+        apdu_timeout: undefined,
+        apdu_retries: undefined,
+        invoke_id: undefined,
+        bbmd_port: undefined,
+        bbmd_ttl: undefined,
+        bbmd_address: undefined
+      },
+      device: true
+    })
+  });
   it('can reply to its own whois and iam messages with default settings', function(done) {
-    const r = require('../bacnet.js').init({
-      iface: iface,
-      ip_port: undefined,
-      apdu_timeout: undefined,
-      apdu_retries: undefined,
-      invoke_id: undefined,
-      bbmd_port: undefined,
-      bbmd_ttl: undefined,
-      bbmd_address: undefined
-    });
-    r.initDevice();
-
     r.once('iam', function(iam) {
       console.log('iam', iam)
       iam.deviceId.should.equal(deviceId)
@@ -52,8 +54,6 @@ describe('Whois / Iam', function() {
       iam.src.should.deepEqual(source)
       done()
     });
-
-    r.listen()
 
     r.whois('127.0.0.1', 260001, 260003)
   })
