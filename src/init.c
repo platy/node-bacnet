@@ -92,6 +92,9 @@ int dlenv_register_as_foreign_device(struct BACNET_CONFIGURATION* config) {
  * @ingroup DataLink
  */
 void dlenv_init(struct BACNET_CONFIGURATION *config) {
+    if (config->device_instance_id) {
+        Device_Set_Object_Instance_Number(config->device_instance_id);
+    }
     if (config->ip_port) {
         bip_set_port(htons(config->ip_port));
     } else {

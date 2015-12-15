@@ -1,7 +1,6 @@
 require('should')
 const tools = require('./tools')
 
-const deviceId = 260001
 const vendorId = 260
 const segmentation = 0b11
 
@@ -24,10 +23,10 @@ describe('Whois / Iam', function() {
       })
       device.once('up', done)
     })
-    it('can reply to its own whois and iam messages', function(done) {
+    it('can reply to its own ranged whois and iam messages', function(done) {
       device.once('iam', function(iam) {
         console.log('iam', iam)
-        iam.deviceId.should.equal(deviceId)
+        iam.deviceId.should.equal(260001)
         iam.vendorId.should.equal(vendorId)
         iam.segmentation.should.equal(segmentation)
         iam.src.should.deepEqual({
@@ -54,10 +53,10 @@ describe('Whois / Iam', function() {
       })
       device.once('up', done)
     })
-    it('can reply to its own whois and iam messages with default settings', function (done) {
+    it('can reply to its own broadcast whois and iam messages', function (done) {
       device.once('iam', function (iam) {
         console.log('iam', iam)
-        iam.deviceId.should.equal(deviceId)
+        iam.deviceId.should.equal(260001)
         iam.vendorId.should.equal(vendorId)
         iam.segmentation.should.equal(segmentation)
         iam.src.should.deepEqual({
@@ -70,9 +69,40 @@ describe('Whois / Iam', function() {
         )
         done()
       });
-      device.whois('127.0.0.1:47809', 260001, 260003)
+      device.whois('127.0.0.1:47809')
     })
   })
+  describe('with a different device id', function() {
+    before(function (done) {
+      device = tools.deviceProcess({
+        device_instance_id: 10,
+        datalink: {
+          iface: iface
+        },
+        device: true
+      })
+      device.once('up', done)
+    })
+    it('can reply to its own specified whois and iam messages', function (done) {
+      device.once('iam', function (iam) {
+        console.log('iam', iam)
+        iam.deviceId.should.equal(10)
+        iam.vendorId.should.equal(vendorId)
+        iam.segmentation.should.equal(segmentation)
+        iam.src.should.deepEqual({
+            mac: {
+              ip: ip,
+              port: 0xBAC0
+            },
+            network: 0
+          }
+        )
+        done()
+      });
+      device.whois('127.0.0.1', 10)
+    })
+  })
+
 
   xit('cannot reply to anothers whois and iam messages on a different port as the iam reply is broadcast on the listening port', function(done) {
     const device = tools.deviceProcess({
@@ -87,7 +117,7 @@ describe('Whois / Iam', function() {
     })
     r.once('iam', function(iam) {
       console.log('iam', iam)
-      iam.deviceId.should.equal(deviceId)
+      iam.deviceId.should.equal(260001)
       iam.vendorId.should.equal(vendorId)
       iam.segmentation.should.equal(segmentation)
       iam.src.should.deepEqual(source)

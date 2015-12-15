@@ -10,7 +10,7 @@ function exit() {
 }
 
 function whois(mac, objectMin, objectMax) {
-  this.send({method: 'whois', args: [mac, objectMin, objectMax]})
+  this.send({method: 'whois', args: Array.from(arguments)})
 }
 
 exports.deviceProcess = function deviceProcess(config) {

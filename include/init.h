@@ -33,6 +33,7 @@ extern "C" {
  *   - invoke_id - not documented
  */
 struct BACNET_CONFIGURATION {
+    uint32_t device_instance_id;
     uint16_t ip_port;
     uint16_t apdu_timeout;
     uint8_t apdu_retries;

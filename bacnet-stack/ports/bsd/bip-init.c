@@ -184,7 +184,6 @@ bool bip_init(
 
     if (ifname) {
         bip_set_interface(ifname);
-        printf("interface %s", ifname);
     } else {
         bip_set_interface("en0");
     }

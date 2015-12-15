@@ -39,6 +39,8 @@ NAN_METHOD(InitInstance) {
     } else {
         configJs = New<Object>();
     }
+
+    uint32_t device_instance_id = getUint32Default(configJs, "device_instance_id", 0);
     uint16_t ip_port = getUint32Default(configJs, "ip_port", 0xBAC0);
     uint16_t apdu_timeout = getUint32Default(configJs, "apdu_timeout", 3000);
     uint8_t apdu_retries = getUint32Default(configJs, "apdu_retries", 3);
@@ -48,7 +50,7 @@ NAN_METHOD(InitInstance) {
     uint32_t bbmd_ttl = getUint32Default(configJs, "bbmd_ttl", 0);
     std::string bbmd_address = getStringOrEmpty(configJs, "bbmd_address");
 
-    struct BACNET_CONFIGURATION config {ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
+    struct BACNET_CONFIGURATION config {device_instance_id, ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
     init_bacnet(&config);
 
     Local<Object> target = New<Object>();
