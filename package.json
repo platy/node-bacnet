@@ -4,7 +4,8 @@
   "scripts": {
     "configure": "node-gyp configure && npm run build",
     "build": "node-gyp build && npm test",
-    "test": "mocha spec"
+    "test": "standard && mocha spec",
+    "style": "standard"
   },
   "devDependencies": {
     "mocha": "^2.3.4",
@@ -12,5 +13,8 @@
   },
   "dependencies": {
     "nan": "^2.1.0"
+  },
+  "standard": {
+    "ignore": ["bacnet-stack"]
   }
 }

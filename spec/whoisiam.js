@@ -1,3 +1,5 @@
+/* global describe, it, xit, before, afterEach */
+
 require('should')
 const tools = require('./tools')
 
@@ -7,14 +9,14 @@ const segmentation = 0b11
 const iface = tools.getSuitableInterface()
 const ip = tools.getInterfaceIP(iface)
 
-describe('Whois / Iam', function() {
+describe('Whois / Iam', function () {
   var device
-  afterEach('Exit the device fork', function(done) {
+  afterEach('Exit the device fork', function (done) {
     device.once('exit', done)
     device.exit()
   })
-  describe('with default settings', function() {
-    before(function(done) {
+  describe('with default settings', function () {
+    before(function (done) {
       device = tools.deviceProcess({
         datalink: {
           iface: iface
@@ -23,26 +25,26 @@ describe('Whois / Iam', function() {
       })
       device.once('up', done)
     })
-    it('can reply to its own ranged whois and iam messages', function(done) {
-      device.once('iam', function(iam) {
+    it('can reply to its own ranged whois and iam messages', function (done) {
+      device.once('iam', function (iam) {
         console.log('iam', iam)
         iam.deviceId.should.equal(260001)
         iam.vendorId.should.equal(vendorId)
         iam.segmentation.should.equal(segmentation)
         iam.src.should.deepEqual({
-            mac: {
-              ip: ip,
-              port: 0xBAC0
-            },
-            network: 0
-          }
+          mac: {
+            ip: ip,
+            port: 0xBAC0
+          },
+          network: 0
+        }
         )
         done()
-      });
+      })
       device.whois('127.0.0.1', 260001, 260003)
     })
   })
-  describe('on a different port', function() {
+  describe('on a different port', function () {
     before(function (done) {
       device = tools.deviceProcess({
         datalink: {
@@ -60,19 +62,19 @@ describe('Whois / Iam', function() {
         iam.vendorId.should.equal(vendorId)
         iam.segmentation.should.equal(segmentation)
         iam.src.should.deepEqual({
-            mac: {
-              ip: ip,
-              port: 0xBAC1
-            },
-            network: 0
-          }
+          mac: {
+            ip: ip,
+            port: 0xBAC1
+          },
+          network: 0
+        }
         )
         done()
-      });
+      })
       device.whois('127.0.0.1:47809')
     })
   })
-  describe('with a different device id', function() {
+  describe('with a different device id', function () {
     before(function (done) {
       device = tools.deviceProcess({
         device_instance_id: 10,
@@ -90,21 +92,20 @@ describe('Whois / Iam', function() {
         iam.vendorId.should.equal(vendorId)
         iam.segmentation.should.equal(segmentation)
         iam.src.should.deepEqual({
-            mac: {
-              ip: ip,
-              port: 0xBAC0
-            },
-            network: 0
-          }
+          mac: {
+            ip: ip,
+            port: 0xBAC0
+          },
+          network: 0
+        }
         )
         done()
-      });
+      })
       device.whois('127.0.0.1', 10)
     })
   })
 
-
-  xit('cannot reply to anothers whois and iam messages on a different port as the iam reply is broadcast on the listening port', function(done) {
+  xit('cannot reply to anothers whois and iam messages on a different port as the iam reply is broadcast on the listening port', function (done) {
     const device = tools.deviceProcess({
       datalink: {
         iface: iface,
@@ -112,19 +113,26 @@ describe('Whois / Iam', function() {
       },
       device: true
     })
-    device.once('up', function() { // device up
-      r.whois('127.0.0.1:47809', 260001, 260003)
+    device.once('up', function () { // device up
+      device.whois('127.0.0.1:47809', 260001, 260003)
     })
-    r.once('iam', function(iam) {
+    device.once('iam', function (iam) {
       console.log('iam', iam)
       iam.deviceId.should.equal(260001)
       iam.vendorId.should.equal(vendorId)
       iam.segmentation.should.equal(segmentation)
-      iam.src.should.deepEqual(source)
+      iam.src.should.deepEqual({
+        mac: {
+          ip: ip,
+          port: 0xBAC0
+        },
+        network: 0
+      }
+      )
       device.exit()
       done()
-    });
+    })
   })
 
-  // todo test that the device id range is used properly
+// todo test that the device id range is used properly
 })
