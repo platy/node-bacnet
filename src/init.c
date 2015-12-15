@@ -1,12 +1,21 @@
-#include "init.h"
-
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
-#include "datalink.h"
-#include "dlenv.h"
+#include <stdlib.h>
+#include "init.h"
 #include "device.h"
+#include "config.h"
+#include "bacdef.h"
 #include "apdu.h"
+#include "datalink.h"
 #include "handlers.h"
+#include "tsm.h"
 
+/* BBMD variables */
+static long bbmd_timetolive_seconds = 60000;
+static long bbmd_port = 0xBAC0;
+static long bbmd_address = 0;
+static int bbmd_result = 0;
 
 void init_service_handlers(
     void)
@@ -36,11 +45,96 @@ void init_device_service_handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
 }
 
-void init_bacnet() {
-  /* Initialise the datalink parameters, dlenv was taken from a demo and sets the datalink parameters from environment
-   variables, or sensible defaults, the fields are statically stored in bvlc.c. I would like to optionally initialise
-   the link params from the js api and to allow making more than one link, but this may involve rewriting bvlc.c and some
-   other files */
-  dlenv_init();
+/** Register as a Foreign Device with the designated BBMD.
+ * @ingroup DataLink
+ * The BBMD's address, port, and lease time must be provided by
+ * internal variables or Environment variables.
+ * If no address for the BBMD is provided, no BBMD registration will occur.
+ *
+ * The Environment Variables depend on define of BACDL_BIP:
+ *     - BACNET_BBMD_PORT - 0..65534, defaults to 47808
+ *     - BACNET_BBMD_TIMETOLIVE - 0..65535 seconds, defaults to 60000
+ *     - BACNET_BBMD_ADDRESS - dotted IPv4 address
+ * @return Positive number (of bytes sent) on success,
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
+ */
+int dlenv_register_as_foreign_device(struct BACNET_CONFIGURATION* config)
+{
+    int retval = 0;
+    if (config->bbmd_port) {
+        bbmd_port = config->bbmd_port;
+        if (bbmd_port > 0xFFFF) {
+            bbmd_port = 0xBAC0;
+        }
+    }
+    if (config->bbmd_ttl) {
+        bbmd_timetolive_seconds = config->bbmd_ttl;
+        if (bbmd_timetolive_seconds > 0xFFFF) {
+            bbmd_timetolive_seconds = 0xFFFF;
+        }
+    }
+    if (config->bbmd_address) {
+        bbmd_address = bip_getaddrbyname(config->bbmd_address);
+    }
+    if (bbmd_address) {
+        struct in_addr addr;
+        addr.s_addr = bbmd_address;
+        fprintf(stderr, "Registering with BBMD at %s:%ld for %ld seconds\n",
+            inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+        retval =
+            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t) bbmd_port),
+            (uint16_t) bbmd_timetolive_seconds);
+        if (retval < 0)
+            fprintf(stderr, "FAILED to Register with BBMD at %s \n",
+                inet_ntoa(addr));
+    }
+
+    bbmd_result = retval;
+    return retval;
+}
+
+/** Initialize the DataLink configuration from the config struct,
+ * or else to defaults.
+ * @ingroup DataLink
+ */
+void dlenv_init(struct BACNET_CONFIGURATION *config) {
+    if (config->ip_port) {
+        bip_set_port(htons(config->ip_port));
+    } else {
+        /* BIP_Port is statically initialized to 0xBAC0,
+         * so if it is different, then it was programmatically altered,
+         * and we shouldn't just stomp on it here.
+         * Unless it is set below 1024, since:
+         * "The range for well-known ports managed by the IANA is 0-1023."
+         */
+        if (ntohs(bip_get_port()) < 1024)
+            bip_set_port(htons(0xBAC0));
+    }
+    if (config->apdu_timeout) {
+        apdu_timeout_set(config->apdu_timeout);
+        fprintf(stderr, "BACNET_APDU_TIMEOUT=%d\r\n", config->apdu_timeout);
+    }
+    if (config->apdu_retries) {
+        apdu_retries_set(config->apdu_retries);
+    }
+    if (*config->iface) {
+        if (!datalink_init(config->iface)) {
+            exit(1);
+        }
+    } else {
+        if (!datalink_init(0)) {
+            exit(1);
+        }
+    }
+    if (config->invoke_id) {
+        tsm_invokeID_set(config->invoke_id);
+    }
+    dlenv_register_as_foreign_device(config);
+}
+
+
+void init_bacnet(struct BACNET_CONFIGURATION *config) {
+  dlenv_init(config);
   atexit(datalink_cleanup);
 }

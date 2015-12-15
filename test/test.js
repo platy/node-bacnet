@@ -1,4 +1,4 @@
-const r = require('../bacnet.js');
+const r = require('../bacnet.js').init();
 
 r.on('iam', function(iam) {
   console.log("iam: ", iam);

@@ -1,11 +1,14 @@
-const EventEmitter = require('events').EventEmitter
-const bacnetAddon = require('./build/Release/binding.node')
 
-const bacnetInterface = new EventEmitter()
+exports.init = function init(config) {
+  const EventEmitter = require('events').EventEmitter
+  const bacnetAddon = require('./build/Release/binding.node').init(config)
 
-bacnetAddon.initClient(bacnetInterface)
-bacnetInterface.initDevice = bacnetAddon.initDevice
-bacnetInterface.listen = bacnetAddon.listen
-bacnetInterface.whois = bacnetAddon.whois
+  const bacnetInterface = new EventEmitter()
 
-module.exports = bacnetInterface
+  bacnetAddon.initClient(bacnetInterface)
+  bacnetInterface.initDevice = bacnetAddon.initDevice
+  bacnetInterface.listen = bacnetAddon.listen
+  bacnetInterface.whois = bacnetAddon.whois
+
+  return bacnetInterface
+}

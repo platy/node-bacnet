@@ -86,6 +86,12 @@ In order to simulate devices we will also want these the opposite way around.
 16. use c++11
 17. separate the code into modules
 
+## Things we're not currently trying to support
+
+- non-ip datalinks
+- bbmp / remote device registration
+- non-core services
+
 ## Useful BACnet documentation
 
 - [BACnet device IDs](http://kargs.net/BACnet/Foundations2012-BACnetDeviceID.pdf)

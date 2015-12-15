@@ -1,22 +1,72 @@
+#include <iostream>
+#include <v8.h>
+#include <nan.h>
 #include "functions.h"
 #include "init.h"
 
+using v8::Local;
+using v8::Value;
+using v8::Object;
+using v8::Int32;
+using v8::Uint32;
+using v8::String;
 using v8::FunctionTemplate;
+using Nan::MaybeLocal;
+using Nan::New;
 
-// NativeExtension.cc represents the top level of the module.
-// C++ constructs that are exposed to javascript are exported here
-
-NAN_MODULE_INIT(InitAll) {
-  init_bacnet();
-
-  Nan::Set(target, Nan::New("whois").ToLocalChecked(),
-    Nan::GetFunction(Nan::New<FunctionTemplate>(whois)).ToLocalChecked());
-  Nan::Set(target, Nan::New("listen").ToLocalChecked(),
-    Nan::GetFunction(Nan::New<FunctionTemplate>(listen)).ToLocalChecked());
-  Nan::Set(target, Nan::New("initClient").ToLocalChecked(),
-    Nan::GetFunction(Nan::New<FunctionTemplate>(initClient)).ToLocalChecked());
-  Nan::Set(target, Nan::New("initDevice").ToLocalChecked(),
-    Nan::GetFunction(Nan::New<FunctionTemplate>(initDevice)).ToLocalChecked());
+uint32_t getUint32Default(Local<Object> target, std::string key, uint32_t defalt) {
+    Local<String> lkey = New(key).ToLocalChecked();
+    Local<Value> ldefault = New(defalt);
+    Local<Value> lvalue = Nan::Get(target, lkey).FromMaybe(ldefault);
+    return lvalue->ToUint32()->Value();
+}
+std::string getStringOrEmpty(Local<Object> target, std::string key) {
+    Local<String> lkey = New(key).ToLocalChecked();
+    MaybeLocal<Value> mvalue = Nan::Get(target, lkey);
+    if (mvalue.IsEmpty() || mvalue.ToLocalChecked()->IsUndefined()) {
+     return "";
+    } else {
+        Nan::Utf8String lstring(mvalue.ToLocalChecked()->ToString());
+        return *lstring;
+    }
 }
 
-NODE_MODULE(binding, InitAll)
+// Configures and returns a bacnet instance - currently due to a lot of static c code, only one instance can exist at a time
+NAN_METHOD(InitInstance) {
+    Local<Object> configJs;
+    if (info.Length() > 0 && !info[0]->IsUndefined()) {
+        configJs = info[0]->ToObject();
+    } else {
+        configJs = New<Object>();
+    }
+    uint16_t ip_port = getUint32Default(configJs, "ip_port", 0xBAC0);
+    uint16_t apdu_timeout = getUint32Default(configJs, "apdu_timeout", 3000);
+    uint8_t apdu_retries = getUint32Default(configJs, "apdu_retries", 3);
+    std::string iface = getStringOrEmpty(configJs, "iface");
+    uint8_t invoke_id = getUint32Default(configJs, "invoke_id", 0);
+    uint32_t bbmd_port = getUint32Default(configJs, "bbmd_port", 0xBAC0);
+    uint32_t bbmd_ttl = getUint32Default(configJs, "bbmd_ttl", 0);
+    std::string bbmd_address = getStringOrEmpty(configJs, "bbmd_address");
+
+    struct BACNET_CONFIGURATION config {ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
+    init_bacnet(&config);
+
+    Local<Object> target = New<Object>();
+    Nan::Set(target, New("whois").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(whois)).ToLocalChecked());
+    Nan::Set(target, New("listen").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(listen)).ToLocalChecked());
+    Nan::Set(target, New("initClient").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(initClient)).ToLocalChecked());
+    Nan::Set(target, New("initDevice").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(initDevice)).ToLocalChecked());
+
+    info.GetReturnValue().Set(target);
+}
+
+NAN_MODULE_INIT(InitModule) {
+    Nan::Set(target, New("init").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(InitInstance)).ToLocalChecked());
+}
+
+NODE_MODULE(binding, InitModule)

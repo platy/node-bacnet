@@ -88,7 +88,6 @@
         "bacnet-stack/demo/handler/h_npdu.c",
         "bacnet-stack/demo/handler/s_whois.c",
         "bacnet-stack/demo/handler/s_iam.c",
-        "bacnet-stack/demo/handler/dlenv.c",
         "bacnet-stack/demo/handler/noserv.c",
         "bacnet-stack/demo/handler/txbuf.c"
       ],
