@@ -1,10 +1,13 @@
 
 #include <sstream>
+#include <iostream>
 #include <stdint.h>
 #include <v8.h>
 #include <nan.h>
 #include <uv.h>
+#include <cstring>
 #include "bacaddr.h"
+#include "rp.h"
 #include "emitter.h"
 #include "listenable.h"
 #include "functions.h"
@@ -20,6 +23,11 @@ struct IamEvent {
   int segmentation;
   uint16_t vendor_id;
   BACNET_ADDRESS * src;
+};
+
+struct RPAEvent {
+  uv_work_t  request;
+  BACNET_READ_PROPERTY_DATA data;
 };
 
 // called by libuv worker in separate thread
@@ -56,7 +64,7 @@ Local<Object> iamToJ(Nan::HandleScope *scope, IamEvent *work) {
 }
 
 // called by libuv in event loop when async function completes
-static void EmitAsyncComplete(uv_work_t *req,int status) {
+static void IamEmitAsyncComplete(uv_work_t *req,int status) {
     Nan::HandleScope scope;
     IamEvent *work = static_cast<IamEvent *>(req->data);
 
@@ -81,8 +89,36 @@ void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t 
     event->vendor_id = vendor_id;
     event->src = src;
 
-    // kick of the worker thread
-    uv_queue_work(uv_default_loop(), &event->request,EmitAsync,EmitAsyncComplete);
+    // kick off the worker thread
+    uv_queue_work(uv_default_loop(), &event->request,EmitAsync,IamEmitAsyncComplete);
+}
+
+// called by libuv in event loop when async function completes
+static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
+    Nan::HandleScope scope;
+    RPAEvent *work = static_cast<RPAEvent *>(req->data);
+
+    Local<Value> argv[] = {
+        Nan::New("read-property-ack").ToLocalChecked()
+    };
+
+    Local<Object> localEventEmitter = Nan::New(eventEmitter);
+    Nan::MakeCallback(localEventEmitter, "emit", 1, argv);
+
+    delete work->data.application_data;
+    delete work;
+}
+
+void emit_read_property_ack(BACNET_READ_PROPERTY_DATA * data) {
+    uint8_t * application_data = new uint8_t[data->application_data_len];
+    memcpy(application_data, data->application_data, data->application_data_len);
+    RPAEvent * event = new RPAEvent();
+    event->request.data = event;
+    event->data = *data;
+    event->data.application_data = application_data;
+
+    // kick off the worker thread
+    uv_queue_work(uv_default_loop(), &event->request,EmitAsync,ReadPropertyAckEmitAsyncComplete);
 }
 
 void eventEmitterSet(Local<Object> localEventEmitter) {

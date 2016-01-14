@@ -9,6 +9,7 @@
 #include "listen.h"
 #include "init.h"
 #include "listenable.h"
+#include "client.h"
 
 
 // whois([destination], [min_id , [max_id]])
@@ -49,6 +50,19 @@ NAN_METHOD(whois) {
     max_id = info[idOffset + 1]->ToInt32()->Value();
   }
   int ret = whoisBroadcast(mac, dest_net, dest_mac, min_id, max_id);
+  v8::Local<v8::Number> retval = Nan::New(ret);
+  info.GetReturnValue().Set(retval);
+}
+
+// readProperty(deviceId, objectType, objectId)
+NAN_METHOD(readProperty) {
+  int32_t device_id = info[0]->ToInt32()->Value();
+  int32_t object_type = info[1]->ToInt32()->Value();
+  int32_t object_id = info[2]->ToInt32()->Value();
+  int32_t propertyId = info[3]->ToInt32()->Value();
+  std::cout << "reading property " << device_id << ", " << object_type << ", " << object_id << ", " << propertyId << std::endl;
+
+  int ret = Send_Read_Property_Request(device_id, OBJECT_DEVICE, object_id, PROP_OBJECT_LIST, BACNET_ARRAY_ALL);
   v8::Local<v8::Number> retval = Nan::New(ret);
   info.GetReturnValue().Set(retval);
 }

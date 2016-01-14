@@ -23,12 +23,11 @@ void init_service_handlers() {
     Device_Init(NULL);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
+    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property_ack);
     /* handle any errors coming back */
     apdu_set_abort_handler(handler_abort);
     apdu_set_reject_handler(handler_reject);

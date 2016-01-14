@@ -97,3 +97,4 @@ In order to simulate devices we will also want these the opposite way around.
 
 - [BACnet device IDs](http://kargs.net/BACnet/Foundations2012-BACnetDeviceID.pdf)
 - [Segmentation in BACnet](http://www.chipkin.com/segementation-in-bacnet/)
+- [The language of BACnet](http://www.bacnet.org/Bibliography/ES-7-96/ES-7-96.htm)

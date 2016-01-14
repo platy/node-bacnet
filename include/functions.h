@@ -5,6 +5,7 @@
 #include <v8.h>
 
 NAN_METHOD(whois);
+NAN_METHOD(readProperty);
 NAN_METHOD(listen);
 NAN_METHOD(initClient);
 NAN_METHOD(initDevice);

@@ -11,6 +11,7 @@ exports.init = function init (config) {
   bacnetAddon.listen()
 
   bacnetInterface.whois = bacnetAddon.whois
+  bacnetInterface.readProperty = bacnetAddon.readProperty
 
   return bacnetInterface
 }

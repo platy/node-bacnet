@@ -56,6 +56,8 @@ NAN_METHOD(InitInstance) {
     Local<Object> target = New<Object>();
     Nan::Set(target, New("whois").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(whois)).ToLocalChecked());
+    Nan::Set(target, New("readProperty").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(readProperty)).ToLocalChecked());
     Nan::Set(target, New("listen").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(listen)).ToLocalChecked());
     Nan::Set(target, New("initClient").ToLocalChecked(),

@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "scripts": {
     "configure": "node-gyp configure && npm run build",
+    "clean": "node-gyp clean",
+    "rebuild": "node-gyp rebuild && npm test",
     "build": "node-gyp build && npm test",
     "test": "standard && mocha spec",
     "style": "standard"
