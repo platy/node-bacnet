@@ -10,8 +10,8 @@ r.on('iam', function (iam) {
   console.log('iam: ', iam)
   r.readProperty(iam.deviceId, 8, iam.deviceId, 76)
 })
-r.on('read-property-ack', function (iam) {
-  console.log('read property ack')
+r.on('read-property-ack', function (ack) {
+  console.log('read property ack', ack)
 })
 
 r.whois()
