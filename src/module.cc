@@ -71,6 +71,8 @@ NAN_METHOD(InitInstance) {
 NAN_MODULE_INIT(InitModule) {
     Nan::Set(target, New("init").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(InitInstance)).ToLocalChecked());
+    Nan::Set(target, New("objectTypeToString").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(objectTypeToString)).ToLocalChecked());
 }
 
 NODE_MODULE(binding, InitModule)

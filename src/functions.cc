@@ -10,7 +10,21 @@
 #include "init.h"
 #include "listenable.h"
 #include "client.h"
+#include "bactext.h"
 
+NAN_METHOD(objectTypeToString) {
+    if (info.Length() >= 1 && info[0]->IsString()) {
+
+    } else if (info.Length() >= 1 && info[0]->IsUint32()) {
+        const char * name = bactext_object_type_name(info[0]->ToUint32()->Value());
+        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+    } else {
+        // TODO : error
+    }
+}
+NAN_METHOD(objectTypeToNumber);
+NAN_METHOD(propertyKeyToString);
+NAN_METHOD(propertyKeyToNumber);
 
 // whois([destination], [min_id , [max_id]])
 NAN_METHOD(whois) {

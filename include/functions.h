@@ -4,6 +4,11 @@
 #include <nan.h>
 #include <v8.h>
 
+NAN_METHOD(objectTypeToString);
+NAN_METHOD(objectTypeToNumber);
+NAN_METHOD(propertyKeyToString);
+NAN_METHOD(propertyKeyToNumber);
+
 NAN_METHOD(whois);
 NAN_METHOD(readProperty);
 NAN_METHOD(listen);
