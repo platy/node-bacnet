@@ -76,7 +76,7 @@ NAN_METHOD(readProperty) {
   int32_t propertyId = info[3]->ToInt32()->Value();
   std::cout << "reading property " << device_id << ", " << object_type << ", " << object_id << ", " << propertyId << std::endl;
 
-  int ret = Send_Read_Property_Request(device_id, OBJECT_DEVICE, object_id, PROP_OBJECT_LIST, BACNET_ARRAY_ALL);
+  int ret = Send_Read_Property_Request(device_id, (BACNET_OBJECT_TYPE)object_type, object_id, (BACNET_PROPERTY_ID)propertyId, BACNET_ARRAY_ALL);
   v8::Local<v8::Number> retval = Nan::New(ret);
   info.GetReturnValue().Set(retval);
 }

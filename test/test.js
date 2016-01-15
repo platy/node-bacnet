@@ -7,7 +7,7 @@ const r = bacnet.init({
   device: false
 })
 
-function objectIdToString(objectId) {
+function objectIdToString (objectId) {
   return {
     type: bacnet.objectTypeToString(objectId.type),
     instance: objectId.instance
