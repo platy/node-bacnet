@@ -3,6 +3,7 @@
 #include <nan.h>
 #include "functions.h"
 #include "init.h"
+#include "conversion.h"
 
 using v8::Local;
 using v8::Value;
@@ -14,22 +15,6 @@ using v8::FunctionTemplate;
 using Nan::MaybeLocal;
 using Nan::New;
 
-uint32_t getUint32Default(Local<Object> target, std::string key, uint32_t defalt) {
-    Local<String> lkey = New(key).ToLocalChecked();
-    Local<Value> ldefault = New(defalt);
-    Local<Value> lvalue = Nan::Get(target, lkey).FromMaybe(ldefault);
-    return lvalue->ToUint32()->Value();
-}
-std::string getStringOrEmpty(Local<Object> target, std::string key) {
-    Local<String> lkey = New(key).ToLocalChecked();
-    MaybeLocal<Value> mvalue = Nan::Get(target, lkey);
-    if (mvalue.IsEmpty() || mvalue.ToLocalChecked()->IsUndefined()) {
-     return "";
-    } else {
-        Nan::Utf8String lstring(mvalue.ToLocalChecked()->ToString());
-        return *lstring;
-    }
-}
 
 // Configures and returns a bacnet instance - currently due to a lot of static c code, only one instance can exist at a time
 NAN_METHOD(InitInstance) {
@@ -73,6 +58,12 @@ NAN_MODULE_INIT(InitModule) {
       Nan::GetFunction(New<FunctionTemplate>(InitInstance)).ToLocalChecked());
     Nan::Set(target, New("objectTypeToString").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(objectTypeToString)).ToLocalChecked());
+    Nan::Set(target, New("objectTypeToNumber").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(objectTypeToNumber)).ToLocalChecked());
+    Nan::Set(target, New("propertyKeyToString").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(propertyKeyToString)).ToLocalChecked());
+    Nan::Set(target, New("propertyKeyToNumber").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(propertyKeyToNumber)).ToLocalChecked());
 }
 
 NODE_MODULE(binding, InitModule)

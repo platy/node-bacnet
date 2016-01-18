@@ -14,7 +14,9 @@ bacnet.init = function init (config) {
   bacnetAddon.listen()
 
   bacnetInterface.whois = bacnetAddon.whois
-  bacnetInterface.readProperty = bacnetAddon.readProperty
+  bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property) {
+    return bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property))
+  }
 
   return bacnetInterface
 }

@@ -13,10 +13,10 @@ function objectIdToString (objectId) {
 
 r.on('iam', function (iam) {
   console.log('iam: ', iam)
-  r.readProperty(iam.deviceId, 8, iam.deviceId, 76)
+  r.readProperty(process.argv[2], process.argv[3], process.argv[4], process.argv[5])
 })
 r.on('read-property-ack', function (property) {
-  console.log('Received property /', objectIdToString(property.object), '/', property.property)
+  console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
   console.log(property.value.map(objectIdToString))
 })
 

@@ -11,10 +11,15 @@
 #include "listenable.h"
 #include "client.h"
 #include "bactext.h"
+#include "conversion.h"
+
 
 NAN_METHOD(objectTypeToString) {
     if (info.Length() >= 1 && info[0]->IsString()) {
-
+        unsigned index;
+        bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index);
+        const char * name = bactext_object_type_name(index);
+        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
     } else if (info.Length() >= 1 && info[0]->IsUint32()) {
         const char * name = bactext_object_type_name(info[0]->ToUint32()->Value());
         info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
@@ -22,9 +27,47 @@ NAN_METHOD(objectTypeToString) {
         // TODO : error
     }
 }
-NAN_METHOD(objectTypeToNumber);
-NAN_METHOD(propertyKeyToString);
-NAN_METHOD(propertyKeyToNumber);
+NAN_METHOD(objectTypeToNumber) {
+    if (info.Length() >= 1 && info[0]->IsString()) {
+        unsigned index;
+        bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index);
+        info.GetReturnValue().Set(Nan::New(index));
+    } else if (info.Length() >= 1 && info[0]->IsUint32()) {
+        const char * name = bactext_object_type_name(info[0]->ToUint32()->Value());
+        unsigned index;
+        bactext_object_type_index(name, &index);
+        info.GetReturnValue().Set(Nan::New(index));
+    } else {
+        // TODO : error
+    }
+}
+NAN_METHOD(propertyKeyToString) {
+    if (info.Length() >= 1 && info[0]->IsString()) {
+        unsigned index;
+        bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index);
+        const char * name = bactext_property_name(index);
+        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+    } else if (info.Length() >= 1 && info[0]->IsUint32()) {
+        const char * name = bactext_property_name(info[0]->ToUint32()->Value());
+        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+    } else {
+        // TODO : error
+    }
+}
+NAN_METHOD(propertyKeyToNumber) {
+    if (info.Length() >= 1 && info[0]->IsString()) {
+        unsigned index;
+        bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index);
+        info.GetReturnValue().Set(Nan::New(index));
+    } else if (info.Length() >= 1 && info[0]->IsUint32()) {
+        const char * name = bactext_property_name(info[0]->ToUint32()->Value());
+        unsigned index;
+        bactext_property_index(name, &index);
+        info.GetReturnValue().Set(Nan::New(index));
+    } else {
+        // TODO : error
+    }
+}
 
 // whois([destination], [min_id , [max_id]])
 NAN_METHOD(whois) {
