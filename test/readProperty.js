@@ -17,7 +17,7 @@ r.on('iam', function (iam) {
 })
 r.on('read-property-ack', function (property) {
   console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
-  console.log(property.value.map(objectIdToString))
+  console.log(property.value)
 })
 
 r.whois()

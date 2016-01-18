@@ -41,9 +41,60 @@ Local<Object> objectHandleToJ(Nan::HandleScope *scope, BACNET_OBJECT_TYPE object
     return rpa;
 }
 
+Local<Value> octetStringToBuffer(Nan::HandleScope *scope, BACNET_OCTET_STRING octet_string) {
+    return Nan::Encode(octet_string.value, octet_string.length, Nan::Encoding::BUFFER);
+}
+
+Local<Value> bitStringToBuffer(Nan::HandleScope *scope, BACNET_BIT_STRING bit_string) {
+    int byte_length = (bit_string.bits_used + 8 - 1) / 8;
+    return Nan::Encode(bit_string.value, byte_length, Nan::Encoding::BUFFER);
+}
+
+// TODO: what does it involve to support this?
+Local<String> characterStringToBuffer(Nan::HandleScope *scope, BACNET_CHARACTER_STRING character_string) {
+    switch (character_string.encoding) {
+    case CHARACTER_MS_DBCS:
+        return Nan::New("Unsupported string encoding - MS-DBCS").ToLocalChecked();
+    case CHARACTER_JISC_6226:
+        return Nan::New("Unsupported string encoding - JISC-6226").ToLocalChecked();
+    case CHARACTER_UCS4:
+        return Nan::New("Unsupported string encoding - UCS4").ToLocalChecked();
+    case CHARACTER_UTF8:
+        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::UTF8).As<String>();
+    case CHARACTER_UCS2:
+        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::UCS2).As<String>();
+    case CHARACTER_ISO8859:
+        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::ASCII).As<String>();
+    }
+    return Nan::New("Unsupported string encoding - Unknown").ToLocalChecked();
+}
+
 // Converts BACNET_APPLICATION_DATA_VALUE to a js value
 Local<Value> bacnetApplicationDataValueToJ(Nan::HandleScope *scope, BACNET_APPLICATION_DATA_VALUE * value) {
     switch (value->tag) {
+    case BACNET_APPLICATION_TAG_NULL:
+        return Nan::Null();
+    case BACNET_APPLICATION_TAG_BOOLEAN:
+        return Nan::New(value->type.Boolean);
+    case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+        return Nan::New(value->type.Unsigned_Int);
+    case BACNET_APPLICATION_TAG_SIGNED_INT:
+        return Nan::New(value->type.Signed_Int);
+    case BACNET_APPLICATION_TAG_REAL:
+        return Nan::New(value->type.Real);
+    case BACNET_APPLICATION_TAG_DOUBLE:
+        return Nan::New(value->type.Double);
+    case BACNET_APPLICATION_TAG_OCTET_STRING:
+        return octetStringToBuffer(scope, value->type.Octet_String);
+    case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+        return characterStringToBuffer(scope, value->type.Character_String);
+    case BACNET_APPLICATION_TAG_BIT_STRING:
+        return bitStringToBuffer(scope, value->type.Bit_String);
+    case BACNET_APPLICATION_TAG_ENUMERATED: // TODO : we can get more info here : see bacapp.c
+        return Nan::New(value->type.Unsigned_Int);
+    case BACNET_APPLICATION_TAG_DATE:
+    case BACNET_APPLICATION_TAG_TIME:
+        return Nan::Null(); // TODO date and time conversions
     case BACNET_APPLICATION_TAG_OBJECT_ID:
         return objectHandleToJ(scope, (BACNET_OBJECT_TYPE) value->type.Object_Id.type, value->type.Object_Id.instance);
     }
