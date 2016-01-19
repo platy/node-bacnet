@@ -260,3 +260,7 @@ Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_D
     Nan::Set(rpa, Nan::New("value").ToLocalChecked(), bacnetApplicationDataToJ(scope, (BACNET_OBJECT_TYPE)data->object_type, data->object_instance, data->object_property, data->application_data, data->application_data_len));
     return rpa;
 }
+
+Local<String> abortReasonToJ(Nan::HandleScope *scope, uint8_t abortReason) {
+    return Nan::New(bactext_abort_reason_name(abortReason)).ToLocalChecked();
+}

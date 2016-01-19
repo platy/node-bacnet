@@ -7,21 +7,20 @@ const r = bacnet.init({
   device: false
 })
 
+console.log('reading property', bacnet.propertyKeyToString(process.argv[5]))
+
 function objectIdToString (objectId) {
   return bacnet.objectTypeToString(objectId.type) + '/' + objectId.instance
 }
 
 r.on('iam', function (iam) {
   console.log('iam: ', iam)
-  r.readProperty(process.argv[2], process.argv[3], process.argv[4], process.argv[5])
-})
-r.on('read-property-ack', function (property) {
-  console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
-  console.log(property.value)
+  r.readProperty(process.argv[2], process.argv[3], process.argv[4], process.argv[5], function (property) {
+    console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
+    console.log(property.value)
+  })
 })
 
-r.whois()
-
-// r.whois('192.168.1.255')
+r.whois(Number(process.argv[2]))
 
 setTimeout(function () {}, 1000)

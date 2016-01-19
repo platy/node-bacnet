@@ -1,3 +1,5 @@
+'use strict'
+
 const addon = require('./build/Release/binding.node')
 const bacnet = Object.create(addon)
 
@@ -9,14 +11,36 @@ bacnet.init = function init (config) {
 
   const bacnetInterface = new EventEmitter()
 
+  const confirmedCallbacks = {}
+
   bacnetAddon.initClient(bacnetInterface)
   if (config && config.device) bacnetAddon.initDevice()
   bacnetAddon.listen()
 
   bacnetInterface.whois = bacnetAddon.whois
-  bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property) {
-    return bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property))
+  bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property, callback) {
+    const invokeId = bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property))
+    if (callback && invokeId > 0) {
+      confirmedCallbacks[invokeId] = callback
+      console.log('stored callback', invokeId)
+    }
+    return invokeId
   }
+
+  bacnetInterface.on('ack', function (invokeId, response) {
+    let invocationCallback = confirmedCallbacks[invokeId]
+    if (invocationCallback) {
+      invocationCallback(null, response)
+    }
+  })
+
+  bacnetInterface.on('abort', function (invokeId, reason) {
+    console.log('abort', invokeId)
+    let invocationCallback = confirmedCallbacks[invokeId]
+    if (invocationCallback) {
+      invocationCallback(new Error(reason))
+    }
+  })
 
   return bacnetInterface
 }

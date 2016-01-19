@@ -26,3 +26,4 @@ std::string extractString(Local<String> jsString);
 //}
 Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_DATA * data);
 Local<Object> bacnetAddressToJ(Nan::HandleScope *scope, BACNET_ADDRESS *src);
+Local<String> abortReasonToJ(Nan::HandleScope *scope, uint8_t abortReason);

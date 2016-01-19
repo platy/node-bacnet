@@ -70,38 +70,86 @@ void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t 
 }
 
 struct RPAEvent {
-  uv_work_t  request;
-  BACNET_READ_PROPERTY_DATA data;
+    uint8_t invoke_id;
+    uv_work_t  request;
+    BACNET_READ_PROPERTY_DATA data;
 };
-
 
 // called by libuv in event loop when async function completes
 static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
-    Nan::HandleScope scope;
     RPAEvent *work = static_cast<RPAEvent *>(req->data);
 
-    Local<Value> argv[] = {
-        Nan::New("read-property-ack").ToLocalChecked(),
-        readPropertyAckToJ(&scope, &work->data)
-    };
-
+    Nan::HandleScope scope;
     Local<Object> localEventEmitter = Nan::New(eventEmitter);
-    Nan::MakeCallback(localEventEmitter, "emit", 2, argv);
+
+    // emit the read property ack in case you want all of those
+    Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
+        Nan::New("read-property-ack").ToLocalChecked(),
+        readPropertyAckToJ(&scope, &work->data),
+        Nan::New(work->invoke_id)
+    });
+
+    // emit the general ack - it is used for firing callbacks of by invoke_id
+    Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
+        Nan::New("ack").ToLocalChecked(),
+        Nan::New(work->invoke_id),
+        readPropertyAckToJ(&scope, &work->data)
+    });
 
     delete work->data.application_data;
     delete work;
 }
 
-void emit_read_property_ack(BACNET_READ_PROPERTY_DATA * data) {
+void emit_read_property_ack(uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data) {
     uint8_t * application_data = new uint8_t[data->application_data_len];
     memcpy(application_data, data->application_data, data->application_data_len);
     RPAEvent * event = new RPAEvent();
+    event->invoke_id = invoke_id;
     event->request.data = event;
     event->data = *data;
     event->data.application_data = application_data;
 
     // kick off the worker thread
-    uv_queue_work(uv_default_loop(), &event->request,DoNothing,ReadPropertyAckEmitAsyncComplete);
+    uv_queue_work(uv_default_loop(), &event->request, DoNothing, ReadPropertyAckEmitAsyncComplete);
+}
+
+struct AbortEvent {
+    BACNET_ADDRESS src;
+    uint8_t invoke_id;
+    uint8_t abort_reason;
+    uv_work_t  request;
+};
+
+// called by libuv in event loop when async function completes
+static void AbortEmitAsyncComplete(uv_work_t *req, int status) {
+    AbortEvent *work = static_cast<AbortEvent *>(req->data);
+
+    Nan::HandleScope scope;
+    Local<Object> localEventEmitter = Nan::New(eventEmitter);
+
+    // emit the abort - it is used for firing callbacks by invoke_id
+    Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
+        Nan::New("abort").ToLocalChecked(),
+        Nan::New(work->invoke_id),
+        abortReasonToJ(&scope, work->abort_reason)
+    });
+
+    delete work;
+}
+
+void emit_abort(
+       BACNET_ADDRESS * src,
+       uint8_t invoke_id,
+       uint8_t abort_reason,
+       bool server) {
+    AbortEvent * event = new AbortEvent();
+    event->invoke_id = invoke_id;
+    event->src = *src;
+    event->abort_reason = abort_reason;
+    event->request.data = event;
+
+    // kick off the worker thread
+    uv_queue_work(uv_default_loop(), &event->request, DoNothing, AbortEmitAsyncComplete);
 }
 
 void eventEmitterSet(Local<Object> localEventEmitter) {

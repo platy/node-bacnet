@@ -17,55 +17,74 @@
 NAN_METHOD(objectTypeToString) {
     if (info.Length() >= 1 && info[0]->IsString()) {
         unsigned index;
-        bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index);
-        const char * name = bactext_object_type_name(index);
-        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        if (bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index)) {
+            const char * name = bactext_object_type_name(index);
+            info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        } else {
+            Nan::ThrowError("Object type string not valid");
+        }
     } else if (info.Length() >= 1 && info[0]->IsUint32()) {
         const char * name = bactext_object_type_name(info[0]->ToUint32()->Value());
         info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
     } else {
-        // TODO : error
+        Nan::ThrowError("Object type must be either a string or unsigned int");
     }
 }
 NAN_METHOD(objectTypeToNumber) {
     if (info.Length() >= 1 && info[0]->IsString()) {
         unsigned index;
-        bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index);
-        info.GetReturnValue().Set(Nan::New(index));
+        if (bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index)) {
+            info.GetReturnValue().Set(Nan::New(index));
+        } else {
+            Nan::ThrowError("Object type string not valid");
+        }
     } else if (info.Length() >= 1 && info[0]->IsUint32()) {
         const char * name = bactext_object_type_name(info[0]->ToUint32()->Value());
         unsigned index;
         bactext_object_type_index(name, &index);
         info.GetReturnValue().Set(Nan::New(index));
     } else {
-        // TODO : error
+        Nan::ThrowError("Object type must be either a string or unsigned int");
     }
 }
 NAN_METHOD(propertyKeyToString) {
     if (info.Length() >= 1 && info[0]->IsString()) {
         unsigned index;
-        bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index);
-        const char * name = bactext_property_name(index);
-        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        if (bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index)) {
+            const char * name = bactext_property_name(index);
+            info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        } else {
+             Nan::ThrowError("Property key string not valid");
+         }
     } else if (info.Length() >= 1 && info[0]->IsUint32()) {
-        const char * name = bactext_property_name(info[0]->ToUint32()->Value());
-        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        uint32_t propertyKey = info[0]->ToUint32()->Value();
+        if (propertyKey <= MAX_BACNET_PROPERTY_ID) {
+            const char * name = bactext_property_name(propertyKey);
+            info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        } else {
+            Nan::ThrowRangeError("Property key too large, maximum is 4194303");
+        }
     } else {
-        // TODO : error
+        Nan::ThrowError("Property key must be either a string or unsigned int");
     }
 }
 NAN_METHOD(propertyKeyToNumber) {
     if (info.Length() >= 1 && info[0]->IsString()) {
         unsigned index;
-        bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index);
-        info.GetReturnValue().Set(Nan::New(index));
+        if (bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index)) {
+            info.GetReturnValue().Set(Nan::New(index));
+        } else {
+            Nan::ThrowError("Property key string not valid");
+        }
     } else if (info.Length() >= 1 && info[0]->IsUint32()) {
-        const char * name = bactext_property_name(info[0]->ToUint32()->Value());
-        unsigned index;
-        bactext_property_index(name, &index);
-        info.GetReturnValue().Set(Nan::New(index));
+        uint32_t propertyKey = info[0]->ToUint32()->Value();
+        if (propertyKey <= MAX_BACNET_PROPERTY_ID) {
+            info.GetReturnValue().Set(Nan::New(propertyKey));
+        } else {
+            Nan::ThrowRangeError("Property key too large, maximum is 4194303");
+        }
     } else {
-        // TODO : error
+        Nan::ThrowError("Property key must be either a string or unsigned int");
     }
 }
 
@@ -107,8 +126,7 @@ NAN_METHOD(whois) {
     max_id = info[idOffset + 1]->ToInt32()->Value();
   }
   int ret = whoisBroadcast(mac, dest_net, dest_mac, min_id, max_id);
-  v8::Local<v8::Number> retval = Nan::New(ret);
-  info.GetReturnValue().Set(retval);
+  info.GetReturnValue().Set(Nan::New(ret));
 }
 
 // readProperty(deviceId, objectType, objectId)
@@ -119,9 +137,8 @@ NAN_METHOD(readProperty) {
   int32_t propertyId = info[3]->ToInt32()->Value();
   std::cout << "reading property " << device_id << ", " << object_type << ", " << object_id << ", " << propertyId << std::endl;
 
-  int ret = Send_Read_Property_Request(device_id, (BACNET_OBJECT_TYPE)object_type, object_id, (BACNET_PROPERTY_ID)propertyId, BACNET_ARRAY_ALL);
-  v8::Local<v8::Number> retval = Nan::New(ret);
-  info.GetReturnValue().Set(retval);
+  int invoke_id = Send_Read_Property_Request(device_id, (BACNET_OBJECT_TYPE)object_type, object_id, (BACNET_PROPERTY_ID)propertyId, BACNET_ARRAY_ALL);
+  info.GetReturnValue().Set(Nan::New(invoke_id));
 }
 
 NAN_METHOD(listen) {

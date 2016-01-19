@@ -40,6 +40,7 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "emitter.h"
 
 /** @file h_rp_a.c  Handles Read Property Acknowledgments. */
 
@@ -127,11 +128,11 @@ void handler_read_property_ack(
     (void) service_data;        /* we could use these... */
     len = rp_ack_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
-    fprintf(stderr, "Received Read-Property Ack!\n");
+    fprintf(stderr, "Received Read-Property Ack! %d\n", service_data->invoke_id);
 #endif
     if (len > 0) {
-        emit_read_property_ack(&data);
-        rp_ack_print_data(&data);
+        emit_read_property_ack(service_data->invoke_id, &data);
+//        rp_ack_print_data(&data);
     }
 }
 
