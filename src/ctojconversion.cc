@@ -4,6 +4,7 @@
 #include <nan.h>
 #include "bacaddr.h"
 #include "bacapp.h"
+#include "bactext.h"
 #include "rp.h"
 
 using namespace v8;
@@ -69,8 +70,111 @@ Local<String> characterStringToBuffer(Nan::HandleScope *scope, BACNET_CHARACTER_
     return Nan::New("Unsupported string encoding - Unknown").ToLocalChecked();
 }
 
-// Converts BACNET_APPLICATION_DATA_VALUE to a js value
-Local<Value> bacnetApplicationDataValueToJ(Nan::HandleScope *scope, BACNET_APPLICATION_DATA_VALUE * value) {
+Local<String> bacnetEnumToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * object_value) {
+    char str[20];
+    int str_len = 20;
+    char *char_str;
+    int ret_val = -1;
+    BACNET_APPLICATION_DATA_VALUE *value = object_value->value;
+    BACNET_PROPERTY_ID property = object_value->object_property;
+    BACNET_OBJECT_TYPE object_type = object_value->object_type;
+    switch (property) {
+    case PROP_PROPERTY_LIST:
+        char_str = (char *) bactext_property_name_default(
+            value->type.Enumerated, NULL);
+        if (char_str) {
+            ret_val = snprintf(str, str_len, "%s", char_str);
+        } else {
+            ret_val =
+                snprintf(str, str_len, "%lu",
+                (unsigned long) value->type.Enumerated);
+        }
+        break;
+    case PROP_OBJECT_TYPE:
+        if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
+            ret_val =
+                snprintf(str, str_len, "%s",
+                bactext_object_type_name(value->type.
+                    Enumerated));
+        } else if (value->type.Enumerated < 128) {
+            ret_val =
+                snprintf(str, str_len, "reserved %lu",
+                (unsigned long) value->type.Enumerated);
+        } else {
+            ret_val =
+                snprintf(str, str_len, "proprietary %lu",
+                (unsigned long) value->type.Enumerated);
+        }
+        break;
+    case PROP_EVENT_STATE:
+        ret_val =
+            snprintf(str, str_len, "%s",
+            bactext_event_state_name(value->type.Enumerated));
+        break;
+    case PROP_UNITS:
+        if (value->type.Enumerated < 256) {
+            ret_val =
+                snprintf(str, str_len, "%s",
+                bactext_engineering_unit_name(value->
+                    type.Enumerated));
+        } else {
+            ret_val =
+                snprintf(str, str_len, "proprietary %lu",
+                (unsigned long) value->type.Enumerated);
+        }
+        break;
+    case PROP_POLARITY:
+        ret_val =
+            snprintf(str, str_len, "%s",
+            bactext_binary_polarity_name(value->
+                type.Enumerated));
+        break;
+    case PROP_PRESENT_VALUE:
+    case PROP_RELINQUISH_DEFAULT:
+        if (object_type < OBJECT_PROPRIETARY_MIN) {
+            ret_val =
+                snprintf(str, str_len, "%s",
+                bactext_binary_present_value_name(value->type.
+                    Enumerated));
+        } else {
+            ret_val =
+                snprintf(str, str_len, "%lu",
+                (unsigned long) value->type.Enumerated);
+        }
+        break;
+    case PROP_RELIABILITY:
+        ret_val =
+            snprintf(str, str_len, "%s",
+            bactext_reliability_name(value->type.Enumerated));
+        break;
+    case PROP_SYSTEM_STATUS:
+        ret_val =
+            snprintf(str, str_len, "%s",
+            bactext_device_status_name(value->
+                type.Enumerated));
+        break;
+    case PROP_SEGMENTATION_SUPPORTED:
+        ret_val =
+            snprintf(str, str_len, "%s",
+            bactext_segmentation_name(value->type.Enumerated));
+        break;
+    case PROP_NODE_TYPE:
+        ret_val =
+            snprintf(str, str_len, "%s",
+            bactext_node_type_name(value->type.Enumerated));
+        break;
+    default:
+        ret_val =
+            snprintf(str, str_len, "%lu",
+            (unsigned long) value->type.Enumerated);
+        break;
+    }
+    return Nan::New(str).ToLocalChecked();
+}
+
+// Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
+Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
+    BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
     switch (value->tag) {
     case BACNET_APPLICATION_TAG_NULL:
         return Nan::Null();
@@ -91,7 +195,7 @@ Local<Value> bacnetApplicationDataValueToJ(Nan::HandleScope *scope, BACNET_APPLI
     case BACNET_APPLICATION_TAG_BIT_STRING:
         return bitStringToBuffer(scope, value->type.Bit_String);
     case BACNET_APPLICATION_TAG_ENUMERATED: // TODO : we can get more info here : see bacapp.c
-        return Nan::New(value->type.Unsigned_Int);
+        return bacnetEnumToJ(scope, propertyValue);
     case BACNET_APPLICATION_TAG_DATE:
     case BACNET_APPLICATION_TAG_TIME:
         return Nan::Null(); // TODO date and time conversions
@@ -102,21 +206,34 @@ Local<Value> bacnetApplicationDataValueToJ(Nan::HandleScope *scope, BACNET_APPLI
 }
 
 // Reads a bacnet application data value from the raw data and returns as a js value
-Local<Value> bacnetApplicationDataToJ(Nan::HandleScope *scope, uint8_t * data, unsigned application_data_len) {
+Local<Value> bacnetApplicationDataToJ(Nan::HandleScope *scope,
+            BACNET_OBJECT_TYPE object_type,
+            uint32_t object_instance,
+            BACNET_PROPERTY_ID object_property,
+            uint8_t * data,
+            unsigned application_data_len) {
     BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_OBJECT_PROPERTY_VALUE object_value;
+    object_value.object_type = object_type;
+    object_value.object_instance = object_instance;
+    object_value.object_property = object_property;
+    object_value.array_index = 0;
+    object_value.value = &value;
     int value_length = bacapp_decode_application_data(data, application_data_len, &value);
     application_data_len = application_data_len - value_length;
-    if (application_data_len == 0)
-        return bacnetApplicationDataValueToJ(scope, &value);
-    else {
+    if (application_data_len == 0) {
+        return bacnetObjectPropertyValueToJ(scope, &object_value);
+    } else {
         int array_length = 0;
         Local<Array> array = Nan::New<v8::Array>(0);
-        Nan::Set(array, array_length++, bacnetApplicationDataValueToJ(scope, &value));
+        object_value.array_index = array_length;
+        Nan::Set(array, array_length++, bacnetObjectPropertyValueToJ(scope, &object_value));
         while (application_data_len > 0) {
             data = data + value_length;
             value_length = bacapp_decode_application_data(data, application_data_len, &value);
             application_data_len = application_data_len - value_length;
-            Nan::Set(array, array_length++, bacnetApplicationDataValueToJ(scope, &value));
+            object_value.array_index = array_length;
+            Nan::Set(array, array_length++, bacnetObjectPropertyValueToJ(scope, &object_value));
         }
         return array;
     }
@@ -139,7 +256,7 @@ Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_D
     Nan::Set(rpa, Nan::New("property").ToLocalChecked(), Nan::New(data->object_property));
     if (data->array_index != BACNET_ARRAY_ALL)
         Nan::Set(rpa, Nan::New("index").ToLocalChecked(), Nan::New(data->array_index));
-//    Nan::Set(rpa, Nan::New("error").ToLocalChecked(), bacnetAddressToJ(scope, data->src));
-    Nan::Set(rpa, Nan::New("value").ToLocalChecked(), bacnetApplicationDataToJ(scope, data->application_data, data->application_data_len));
+//    Nan::Set(rpa, Nan::New("error").ToLocalChecked(),
+    Nan::Set(rpa, Nan::New("value").ToLocalChecked(), bacnetApplicationDataToJ(scope, (BACNET_OBJECT_TYPE)data->object_type, data->object_instance, data->object_property, data->application_data, data->application_data_len));
     return rpa;
 }
