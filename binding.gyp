@@ -9,7 +9,6 @@
         "src/emitter.cc",
         "src/jtocconversion.cc",
         "src/ctojconversion.cc",
-        "src/s_whois.c",
         "src/s_rp.c",
         "src/init.c",
         "src/listen.c",

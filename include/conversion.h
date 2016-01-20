@@ -12,6 +12,7 @@ using v8::String;
 uint32_t getUint32Default(Local<Object> target, std::string key, uint32_t defalt);
 std::string getStringOrEmpty(Local<Object> target, std::string key);
 std::string extractString(Local<String> jsString);
+BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue);
 
 // Converts the BACNET_READ_PROPERTY_DATA to a js object
 //{

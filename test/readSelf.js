@@ -5,7 +5,7 @@ const r = bacnet.init({
     iface: 'bridge100',
     ip_port: 0xBAC0
   },
-  device: false
+  device: true
 })
 
 function objectIdToString (objectId) {
@@ -16,14 +16,14 @@ function receiveObjectList (err, property) {
   if (err) return console.log('ERROR', err)
   console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
   async.mapSeries(property.value, function (objectId, objectRead) {
-    async.mapSeries(['object-name', 'description'], (propertyName, propertyRead) =>
-      r.readProperty(Number(process.argv[2]), objectId.type, objectId.instance, propertyName, (err, propertyValue) => {
-        if (err) {
-          propertyRead(null, 'NONE')
-        } else {
-          propertyRead(null, propertyValue.value)
-        }
-      }),
+    async.mapSeries(['object-name', 'description', 'present-value'], (propertyName, propertyRead) =>
+        r.readProperty('127.0.0.1', objectId.type, objectId.instance, propertyName, (err, propertyValue) => {
+          if (err) {
+            propertyRead(null, 'NONE')
+          } else {
+            propertyRead(null, propertyValue.value)
+          }
+        }),
       (err, values) => {
         if (err) {
           console.log('error', err)
@@ -32,7 +32,8 @@ function receiveObjectList (err, property) {
         objectRead(null, {
           id: objectIdToString(objectId),
           name: values[0],
-          description: values[1]
+          description: values[1],
+          value: values[2]
         })
       })
   }, (err, result) => {
@@ -43,11 +44,6 @@ function receiveObjectList (err, property) {
   })
 }
 
-r.on('iam', function (iam) {
-  console.log('iam: ', iam)
-  console.log('read-property invoke', r.readProperty(Number(process.argv[2]), 'device', process.argv[2], 'object-list', receiveObjectList))
-})
+r.readProperty('127.0.0.1', 'device', 260001, 'object-list', receiveObjectList)
 
-r.whois(Number(process.argv[2]))
-
-setTimeout(function () {}, 4000)
+setTimeout(function () {}, 1000)

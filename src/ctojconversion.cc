@@ -194,10 +194,11 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
         return characterStringToBuffer(scope, value->type.Character_String);
     case BACNET_APPLICATION_TAG_BIT_STRING:
         return bitStringToBuffer(scope, value->type.Bit_String);
-    case BACNET_APPLICATION_TAG_ENUMERATED: // TODO : we can get more info here : see bacapp.c
+    case BACNET_APPLICATION_TAG_ENUMERATED:
         return bacnetEnumToJ(scope, propertyValue);
     case BACNET_APPLICATION_TAG_DATE:
     case BACNET_APPLICATION_TAG_TIME:
+        Nan::ThrowError("Date and time conversion is not yet implemented in the wrapper");
         return Nan::Null(); // TODO date and time conversions
     case BACNET_APPLICATION_TAG_OBJECT_ID:
         return objectHandleToJ(scope, (BACNET_OBJECT_TYPE) value->type.Object_Id.type, value->type.Object_Id.instance);
