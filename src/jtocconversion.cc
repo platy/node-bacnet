@@ -35,15 +35,18 @@ std::string getStringOrEmpty(Local<Object> target, std::string key) {
     }
 }
 
+// Currently converts an address string ie '123.123.123.123:456' to a bacnet address
+// Non-strings create the broadcast address
+// TODO : accept objects which specify the additional address properties - for which partial logic exists below
 BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue) {
-    BACNET_MAC_ADDRESS mac = { 0 };
-    BACNET_MAC_ADDRESS adr = { 0 };
-    long dnet = -1;
-    char* dest_mac = 0;
-    bool global_broadcast = true;
+    BACNET_ADDRESS dest = { 0 };
 
     if (addressValue->IsString()) { // address object parameter
-        global_broadcast = false;
+        BACNET_MAC_ADDRESS mac = { 0 };
+        BACNET_MAC_ADDRESS adr = { 0 };
+        long dnet = -1;
+        char* dest_mac = 0;
+
         Nan::Utf8String address(addressValue.As<v8::String>());
         address_mac_from_ascii(&mac, *address);
 //          if (strcmp(argv[argi], "--dnet") == 0) {
@@ -61,14 +64,7 @@ BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue) {
 //                  }
 //              }
 //          }
-    }
 
-
-    BACNET_ADDRESS dest = { 0 };
-
-    if (global_broadcast) {
-        datalink_get_broadcast_address(&dest);
-    } else {
         if (adr.len && mac.len) {
             memcpy(&dest.mac[0], &mac.adr[0], mac.len);
             dest.mac_len = mac.len;
@@ -97,6 +93,8 @@ BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue) {
             dest.mac_len = 0;
             dest.len = 0;
         }
+    } else {
+        datalink_get_broadcast_address(&dest);
     }
     return dest;
 }
