@@ -85,18 +85,20 @@ static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
     Local<Object> property = readPropertyAckToJ(&scope, &work->data);
 
     // emit the read property ack in case you want all of those
-    Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
-        Nan::New("read-property-ack").ToLocalChecked(),
-        property,
-        Nan::New(work->invoke_id)
-    });
+    Local<Value> emit_rp_a_args[] = {
+            Nan::New("read-property-ack").ToLocalChecked(),
+            property,
+            Nan::New(work->invoke_id)
+        };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_rp_a_args);
 
     // emit the general ack - it is used for firing callbacks of by invoke_id
-    Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
-        Nan::New("ack").ToLocalChecked(),
-        Nan::New(work->invoke_id),
-        property
-    });
+    Local<Value> emit_a_args[] = {
+            Nan::New("ack").ToLocalChecked(),
+            Nan::New(work->invoke_id),
+            property,
+        };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
 
     delete work->data.application_data;
     delete work;
@@ -130,11 +132,12 @@ static void AbortEmitAsyncComplete(uv_work_t *req, int status) {
     Local<Object> localEventEmitter = Nan::New(eventEmitter);
 
     // emit the abort - it is used for firing callbacks by invoke_id
-    Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
-        Nan::New("abort").ToLocalChecked(),
-        Nan::New(work->invoke_id),
-        abortReasonToJ(&scope, work->abort_reason)
-    });
+    Local<Value> emit_a_args[] = {
+            Nan::New("abort").ToLocalChecked(),
+            Nan::New(work->invoke_id),
+            abortReasonToJ(&scope, work->abort_reason)
+        };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
 
     delete work;
 }
