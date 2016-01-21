@@ -15,7 +15,9 @@ function objectIdToString (objectId) {
 const propertyKeys = ['object-identifier', 'object-name', 'description', 'system-status', 'vendor-name',
   'vendor-identifier', 'model-name', 'firmware-revision', 'application-software-version', 'location', 'local-time', 'local-date',
   'utc-offset', 'daylight-savings-status', 'protocol-version', 'protocol-revision',
-  'protocol-services-supported'
+  'protocol-services-supported', /*'object-types-supported'*/ 96, 'object-list', 'max-apdu-length-accepted',
+  'segmentation-supported', 'apdu-timeout', 'number-of-apdu-retries', /*'device-address-binding',*/ 'database-revision',
+  'max-info-frames', 'max-master', //'active-cov-subscriptions'
 ]
 
 function receiveObjectList (err, property) {
@@ -25,7 +27,7 @@ function receiveObjectList (err, property) {
     async.mapSeries(propertyKeys, (propertyName, propertyRead) =>
         r.readProperty('127.0.0.1', objectId.type, objectId.instance, propertyName, false, (err, propertyValue) => {
           if (err) {
-            propertyRead(null, 'NONE')
+            propertyRead(null, 'FAILED')
           } else {
             propertyRead(null, propertyValue.value)
           }
@@ -36,7 +38,7 @@ function receiveObjectList (err, property) {
           return objectRead(null, false)
         }
         objectRead(null, propertyKeys.reduce((result, key, index) => {
-          if (values[index].length = 1) result[key] = values[index][0]
+          if (values[index].length == 1) result[key] = values[index][0]
           else result[key] = values[index]
           return result
         }, {}))

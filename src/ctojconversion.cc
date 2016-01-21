@@ -38,7 +38,7 @@ Local<Object> bacnetAddressToJ(Nan::HandleScope *scope, BACNET_ADDRESS *src) {
 //}
 Local<Object> objectHandleToJ(Nan::HandleScope *scope, BACNET_OBJECT_TYPE object_type, uint32_t object_instance) {
     Local<Object> rpa = Nan::New<Object>();
-    Nan::Set(rpa, Nan::New("type").ToLocalChecked(), Nan::New(object_type));
+    Nan::Set(rpa, Nan::New("type").ToLocalChecked(), Nan::New(bactext_object_type_name(object_type)).ToLocalChecked());
     Nan::Set(rpa, Nan::New("instance").ToLocalChecked(), Nan::New(object_instance));
     return rpa;
 }
