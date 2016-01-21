@@ -82,10 +82,12 @@ static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
     Nan::HandleScope scope;
     Local<Object> localEventEmitter = Nan::New(eventEmitter);
 
+    Local<Object> property = readPropertyAckToJ(&scope, &work->data);
+
     // emit the read property ack in case you want all of those
     Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
         Nan::New("read-property-ack").ToLocalChecked(),
-        readPropertyAckToJ(&scope, &work->data),
+        property,
         Nan::New(work->invoke_id)
     });
 
@@ -93,7 +95,7 @@ static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
     Nan::MakeCallback(localEventEmitter, "emit", 3, (Local<Value>[]){
         Nan::New("ack").ToLocalChecked(),
         Nan::New(work->invoke_id),
-        readPropertyAckToJ(&scope, &work->data)
+        property
     });
 
     delete work->data.application_data;

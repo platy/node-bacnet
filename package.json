@@ -6,7 +6,7 @@
     "clean": "node-gyp clean",
     "rebuild": "node-gyp rebuild && npm test",
     "build": "node-gyp build && npm test",
-    "test": "standard && mocha spec",
+    "test": "mocha spec",
     "style": "standard"
   },
   "devDependencies": {

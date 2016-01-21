@@ -208,35 +208,33 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
 
 // Reads a bacnet application data value from the raw data and returns as a js value
 Local<Value> bacnetApplicationDataToJ(Nan::HandleScope *scope,
-            BACNET_OBJECT_TYPE object_type,
-            uint32_t object_instance,
-            BACNET_PROPERTY_ID object_property,
-            uint8_t * data,
-            unsigned application_data_len) {
+            BACNET_READ_PROPERTY_DATA * data) {
+    unsigned application_data_len = data->application_data_len;
+    uint8_t * application_data = data->application_data;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_OBJECT_PROPERTY_VALUE object_value;
-    object_value.object_type = object_type;
-    object_value.object_instance = object_instance;
-    object_value.object_property = object_property;
-    object_value.array_index = 0;
+    object_value.object_type = data->object_type;
+    object_value.object_instance = data->object_instance;
+    object_value.object_property = data->object_property;
     object_value.value = &value;
-    int value_length = bacapp_decode_application_data(data, application_data_len, &value);
-    application_data_len = application_data_len - value_length;
-    if (application_data_len == 0) {
-        return bacnetObjectPropertyValueToJ(scope, &object_value);
-    } else {
+    if (data->array_index == BACNET_ARRAY_ALL) { // an array
+        int value_length = bacapp_decode_application_data(application_data, application_data_len, &value);
+        application_data_len = application_data_len - value_length;
         int array_length = 0;
         Local<Array> array = Nan::New<v8::Array>(0);
         object_value.array_index = array_length;
         Nan::Set(array, array_length++, bacnetObjectPropertyValueToJ(scope, &object_value));
         while (application_data_len > 0) {
-            data = data + value_length;
-            value_length = bacapp_decode_application_data(data, application_data_len, &value);
+            application_data = application_data + value_length;
+            value_length = bacapp_decode_application_data(application_data, application_data_len, &value);
             application_data_len = application_data_len - value_length;
             object_value.array_index = array_length;
             Nan::Set(array, array_length++, bacnetObjectPropertyValueToJ(scope, &object_value));
         }
         return array;
+    } else { // single array index
+        object_value.array_index = data->array_index;
+        return bacnetObjectPropertyValueToJ(scope, &object_value);
     }
 }
 
@@ -258,7 +256,7 @@ Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_D
     if (data->array_index != BACNET_ARRAY_ALL)
         Nan::Set(rpa, Nan::New("index").ToLocalChecked(), Nan::New(data->array_index));
 //    Nan::Set(rpa, Nan::New("error").ToLocalChecked(),
-    Nan::Set(rpa, Nan::New("value").ToLocalChecked(), bacnetApplicationDataToJ(scope, (BACNET_OBJECT_TYPE)data->object_type, data->object_instance, data->object_property, data->application_data, data->application_data_len));
+    Nan::Set(rpa, Nan::New("value").ToLocalChecked(), bacnetApplicationDataToJ(scope, data));
     return rpa;
 }
 
