@@ -87,8 +87,8 @@ static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
     // emit the read property ack in case you want all of those
     Local<Value> emit_rp_a_args[] = {
             Nan::New("read-property-ack").ToLocalChecked(),
-            property
-            Nan::New(work->invoke_id)
+            property,
+            Nan::New(work->invoke_id),
         };
     Nan::MakeCallback(localEventEmitter, "emit", 3, emit_rp_a_args);
 
@@ -96,7 +96,7 @@ static void ReadPropertyAckEmitAsyncComplete(uv_work_t *req,int status) {
     Local<Value> emit_a_args[] = {
             Nan::New("ack").ToLocalChecked(),
             Nan::New(work->invoke_id),
-            property
+            property,
         };
     Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
 

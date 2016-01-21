@@ -12,7 +12,8 @@
   "devDependencies": {
     "async": "^1.5.2",
     "mocha": "^2.3.4",
-    "should": "^8.0.1"
+    "should": "^8.0.1",
+    "standard": "*"
   },
   "dependencies": {
     "nan": "^2.1.0"
