@@ -4,7 +4,7 @@ const async = require('async')
 const bacnet = require('../bacnet.js')
 const r = bacnet.init({
   datalink: {
-    iface: 'bridge100',
+    iface: process.argv[2],
     ip_port: 0xBAC0
   },
   device: true
@@ -48,39 +48,6 @@ r.on('iam', function (iam) {
     })
 })
 
-r.whois(process.argv[2])
-
-r.readProperty('127.0.0.1', 'device', 260001, 'object-list', false, receiveObjectList)
-
-function receiveObjectList (err, property) {
-  if (err) return console.log('ERROR', err)
-  console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
-  async.mapSeries(property.value, function (objectId, objectRead) {
-    async.mapSeries(deviceProperties, (propertyName, propertyRead) =>
-        r.readProperty(property.object, objectId.type, objectId.instance, propertyName, false, (err, propertyValue) => {
-          if (err) {
-            propertyRead(null, 'FAILED')
-          } else {
-            propertyRead(null, propertyValue.value)
-          }
-        }),
-      (err, values) => {
-        if (err) {
-          console.log('error', err)
-          return objectRead(null, false)
-        }
-        objectRead(null, deviceProperties.reduce((result, key, index) => {
-          if (values[index].length == 1) result[key] = values[index][0]
-          else result[key] = values[index]
-          return result
-        }, {}))
-      })
-  }, (err, result) => {
-    if (err) {
-      console.log('Error', err)
-    }
-    console.log('Result', result)
-  })
-}
+r.whois(process.argv[3])
 
 setTimeout(function () {}, 1000)
