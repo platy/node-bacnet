@@ -2,6 +2,7 @@
 #include <sstream>
 #include <v8.h>
 #include <nan.h>
+#include <time.h>
 #include "bacaddr.h"
 #include "bacapp.h"
 #include "bactext.h"
@@ -172,6 +173,24 @@ Local<String> bacnetEnumToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALU
     return Nan::New(str).ToLocalChecked();
 }
 
+Local<Object> bacnetDateToJ(Nan::HandleScope *scope, BACNET_DATE * date) {
+    Local<Object> jdate = Nan::New<Object>();
+    Nan::Set(jdate, Nan::New("year").ToLocalChecked(), Nan::New(date->year));
+    Nan::Set(jdate, Nan::New("month").ToLocalChecked(), Nan::New(date->month));
+    Nan::Set(jdate, Nan::New("day").ToLocalChecked(), Nan::New(date->day));
+    Nan::Set(jdate, Nan::New("weekday").ToLocalChecked(), Nan::New(bactext_day_of_week_name(date->wday)).ToLocalChecked());
+    return jdate;
+}
+
+Local<Object> bacnetTimeToJ(Nan::HandleScope *scope, BACNET_TIME * time) {
+    Local<Object> jtime = Nan::New<Object>();
+    Nan::Set(jtime, Nan::New("hour").ToLocalChecked(), Nan::New(time->hour));
+    Nan::Set(jtime, Nan::New("min").ToLocalChecked(), Nan::New(time->min));
+    Nan::Set(jtime, Nan::New("sec").ToLocalChecked(), Nan::New(time->sec));
+    Nan::Set(jtime, Nan::New("hundredths").ToLocalChecked(), Nan::New(time->hundredths));
+    return jtime;
+}
+
 // Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
 Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
     BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
@@ -197,9 +216,9 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     case BACNET_APPLICATION_TAG_ENUMERATED:
         return bacnetEnumToJ(scope, propertyValue);
     case BACNET_APPLICATION_TAG_DATE:
+        return bacnetDateToJ(scope, &value->type.Date);
     case BACNET_APPLICATION_TAG_TIME:
-        Nan::ThrowError("Date and time conversion is not yet implemented in the wrapper");
-        return Nan::Null(); // TODO date and time conversions
+        return bacnetTimeToJ(scope, &value->type.Time);
     case BACNET_APPLICATION_TAG_OBJECT_ID:
         return objectHandleToJ(scope, (BACNET_OBJECT_TYPE) value->type.Object_Id.type, value->type.Object_Id.instance);
     }

@@ -13,7 +13,7 @@ function objectIdToString (objectId) {
 }
 
 const propertyKeys = ['object-identifier', 'object-name', 'description', 'system-status', 'vendor-name',
-  'vendor-identifier', 'model-name', 'firmware-revision', 'application-software-version', 'location', //'local-time', 'local-date',
+  'vendor-identifier', 'model-name', 'firmware-revision', 'application-software-version', 'location', 'local-time', 'local-date',
   'utc-offset', 'daylight-savings-status', 'protocol-version', 'protocol-revision',
   'protocol-services-supported'
 ]
@@ -49,6 +49,8 @@ function receiveObjectList (err, property) {
   })
 }
 
+r.on('error', err => console.log('error in bacnet', err))
+
 r.readProperty('127.0.0.1', 'device', 260001, 'object-list', false, receiveObjectList)
 
-setTimeout(function () {}, 5000)
+setTimeout(function () {}, 1000)
