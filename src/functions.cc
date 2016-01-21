@@ -4,6 +4,7 @@
 #include <nan.h>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include "functions.h"
 #include "listen.h"
 #include "init.h"
@@ -69,12 +70,15 @@ NAN_METHOD(propertyKeyToString) {
     }
 }
 NAN_METHOD(propertyKeyToNumber) {
+    std::ostringstream errorStringStream;
     if (info.Length() >= 1 && info[0]->IsString()) {
         unsigned index;
-        if (bactext_property_index(extractString(info[0].As<v8::String>()).c_str(), &index)) {
+        const char * inputString = extractString(info[0].As<v8::String>()).c_str();
+        if (bactext_property_index(inputString, &index)) {
             info.GetReturnValue().Set(Nan::New(index));
         } else {
-            Nan::ThrowError("Property key string not valid");
+            errorStringStream << "Property key string not valid : " << inputString;
+            Nan::ThrowError(errorStringStream.str().c_str());
         }
     } else if (info.Length() >= 1 && info[0]->IsUint32()) {
         uint32_t propertyKey = info[0]->ToUint32()->Value();
@@ -123,9 +127,13 @@ NAN_METHOD(readProperty) {
     int32_t object_type = info[1]->ToInt32()->Value();
     int32_t object_instance = info[2]->ToInt32()->Value();
     int32_t object_property = info[3]->ToInt32()->Value();
+    uint32_t array_index = BACNET_ARRAY_ALL;
     int invoke_id = 0;
 
-    std::cout << "device is " << extractString(info[0]->ToString()) << " " << info[0]->IsNumber() << " " << info[0]->IsString() << std::endl;
+    if (info[4]->IsUint32()) {
+        array_index = info[4]->ToUint32()->Value();
+    }
+
     if (info[0]->IsNumber()) {  // device id
         int32_t device_id = info[0]->ToInt32()->Value();
         std::cout << "reading property " << device_id << ", " << object_type << ", " << object_instance << ", " << object_property << std::endl;
@@ -134,7 +142,7 @@ NAN_METHOD(readProperty) {
             (BACNET_OBJECT_TYPE)object_type,
             object_instance,
             (BACNET_PROPERTY_ID)object_property,
-            BACNET_ARRAY_ALL);
+            array_index);
     } else {   // device address
         BACNET_ADDRESS dest = bacnetAddressToC(info[0]);
         uint16_t max_apdu = MAX_APDU; // without doing the whois we dont know the Max apdu for the device - so we will just hope it is the same as ours
@@ -145,7 +153,7 @@ NAN_METHOD(readProperty) {
             (BACNET_OBJECT_TYPE)object_type,
             object_instance,
             (BACNET_PROPERTY_ID)object_property,
-            BACNET_ARRAY_ALL);
+            array_index);
     }
     info.GetReturnValue().Set(Nan::New(invoke_id));
 }

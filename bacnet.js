@@ -18,11 +18,11 @@ bacnet.init = function init (config) {
   bacnetAddon.listen()
 
   bacnetInterface.whois = bacnetAddon.whois
-  bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property, callback) {
-    const invokeId = bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property))
+  bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, callback) {
+    if (!objectType) throw new TypeError('Expected an object type, got : ' + objectType)
+    const invokeId = bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex)
     if (callback && invokeId > 0) {
       confirmedCallbacks[invokeId] = callback
-      console.log('stored callback', invokeId)
     }
     return invokeId
   }
