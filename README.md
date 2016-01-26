@@ -98,3 +98,17 @@ In order to simulate devices we will also want these the opposite way around.
 - [BACnet device IDs](http://kargs.net/BACnet/Foundations2012-BACnetDeviceID.pdf)
 - [Segmentation in BACnet](http://www.chipkin.com/segementation-in-bacnet/)
 - [The language of BACnet](http://www.bacnet.org/Bibliography/ES-7-96/ES-7-96.htm)
+
+
+## Usage considerations
+
+### Segmentation not supported
+
+bacnet-stack doesnt support segmentation - so this client doesn't support segmentation. 
+
+This can be worked around for large arrays (particularly object lists) by reading the length of the array (index 0) and 
+then reading each element of the array. This should be OK if these arrays don't need to be subscribed using COV or read 
+regularly.
+
+Another option is that we find a way to get segmentation support, such as by merging this branch - 
+https://svn.code.sf.net/p/bacnet/code/branches/jbennet/bacnet-stack-0-5-7/

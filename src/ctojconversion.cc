@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <sstream>
 #include <v8.h>
 #include <nan.h>
@@ -222,6 +223,7 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     case BACNET_APPLICATION_TAG_OBJECT_ID:
         return objectHandleToJ(scope, (BACNET_OBJECT_TYPE) value->type.Object_Id.type, value->type.Object_Id.instance);
     }
+    std::cout << "ERROR: value tag (" << +value->tag << ") not converted to js '" << bactext_application_tag_name(value->tag) << "'" << std::endl;
     return Nan::Null();
 }
 
@@ -252,6 +254,7 @@ Local<Value> bacnetApplicationDataToJ(Nan::HandleScope *scope,
         }
         return array;
     } else { // single array index
+        int value_length = bacapp_decode_application_data(application_data, application_data_len, &value);
         object_value.array_index = data->array_index;
         return bacnetObjectPropertyValueToJ(scope, &object_value);
     }
