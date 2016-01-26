@@ -13,11 +13,16 @@ function whois (mac, objectMin, objectMax) {
   this.send({method: 'whois', args: Array.from(arguments)})
 }
 
+function readProperty (device, objectType, objectInstance, propertyId, arrayIndex) {
+  this.send({method: 'readProperty', args: Array.from(arguments)})
+}
+
 exports.deviceProcess = function deviceProcess (config) {
   const device = fork(__dirname + '/deviceFromString.js')
   device.send(config || false) // initialises with no args
   device.exit = exit
   device.whois = whois
+  device.readProperty = readProperty
   device.once('message', function () {
     device.emit('up')
     device.on('message', runningDeviceMessage)
@@ -25,7 +30,7 @@ exports.deviceProcess = function deviceProcess (config) {
   return device
 }
 
-exports.getSuitableInterface = function getSuitableInterface () {
+exports.getSuitableBroadcastInterface = function getSuitableBroadcastInterface () {
   const ifaces = os.networkInterfaces()
   for (var ifaceName of Object.keys(ifaces)) {
     for (var address of ifaces[ifaceName]) {

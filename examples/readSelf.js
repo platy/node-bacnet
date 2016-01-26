@@ -17,34 +17,32 @@ function objectIdToString (objectId) {
 const deviceProperties = ['object-identifier', 'object-name', 'description', 'system-status', 'vendor-name',
   'vendor-identifier', 'model-name', 'firmware-revision', 'application-software-version', 'location', 'local-time', 'local-date',
   'utc-offset', 'daylight-savings-status', 'protocol-version', 'protocol-revision',
-  'protocol-services-supported', /*'object-types-supported'*/ 96, 'object-list', 'max-apdu-length-accepted',
-  'segmentation-supported', 'apdu-timeout', 'number-of-apdu-retries', /*'device-address-binding',*/ 'database-revision',
-  'max-info-frames', 'max-master', //'active-cov-subscriptions'
+  'protocol-services-supported', /* 'object-types-supported' */ 96, 'object-list', 'max-apdu-length-accepted',
+  'segmentation-supported', 'apdu-timeout', 'number-of-apdu-retries', /* 'device-address-binding', */ 'database-revision',
+  'max-info-frames', 'max-master' // , 'active-cov-subscriptions'
 ]
 
 function receiveObjectList (err, property) {
   if (err) return console.log('ERROR', err)
   console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
   async.mapSeries(property.value, function (objectId, objectRead) {
-    async.mapSeries(deviceProperties, (propertyName, propertyRead) =>
-        r.readProperty('127.0.0.1', objectId.type, objectId.instance, propertyName, false, (err, propertyValue) => {
-          if (err) {
-            propertyRead(null, 'FAILED')
-          } else {
-            propertyRead(null, propertyValue.value)
-          }
-        }),
-      (err, values) => {
-        if (err) {
-          console.log('error', err)
-          return objectRead(null, false)
-        }
-        objectRead(null, deviceProperties.reduce((result, key, index) => {
-          if (values[index].length == 1) result[key] = values[index][0]
-          else result[key] = values[index]
-          return result
-        }, {}))
-      })
+    async.mapSeries(deviceProperties, (propertyName, propertyRead) => r.readProperty('127.0.0.1', objectId.type, objectId.instance, propertyName, false, (err, propertyValue) => {
+      if (err) {
+        propertyRead(null, 'FAILED')
+      } else {
+        propertyRead(null, propertyValue.value)
+      }
+    }), (err, values) => {
+      if (err) {
+        console.log('error', err)
+        return objectRead(null, false)
+      }
+      objectRead(null, deviceProperties.reduce((result, key, index) => {
+        if (values[index].length === 1) result[key] = values[index][0]
+        else result[key] = values[index]
+        return result
+      }, {}))
+    })
   }, (err, result) => {
     if (err) {
       console.log('Error', err)

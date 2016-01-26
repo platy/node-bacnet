@@ -1,10 +1,9 @@
 'use strict'
 
-const async = require('async')
 const bacnet = require('../bacnet.js')
 const r = bacnet.init({
   datalink: {
-    //iface: process.argv[2],
+    // iface: process.argv[2],
     ip_port: 0xBAC1
   },
   device: false

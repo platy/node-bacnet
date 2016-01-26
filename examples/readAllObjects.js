@@ -16,25 +16,23 @@ function receiveObjectList (err, property) {
   if (err) return console.log('ERROR', err)
   console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
   async.mapSeries(property.value, function (objectId, objectRead) {
-    async.mapSeries(['object-name', 'description'], (propertyName, propertyRead) =>
-      r.readProperty(Number(process.argv[2]), objectId.type, objectId.instance, propertyName, (err, propertyValue) => {
-        if (err) {
-          propertyRead(null, 'NONE')
-        } else {
-          propertyRead(null, propertyValue.value)
-        }
-      }),
-      (err, values) => {
-        if (err) {
-          console.log('error', err)
-          return objectRead(null, false)
-        }
-        objectRead(null, {
-          id: objectIdToString(objectId),
-          name: values[0],
-          description: values[1]
-        })
+    async.mapSeries(['object-name', 'description'], (propertyName, propertyRead) => r.readProperty(Number(process.argv[2]), objectId.type, objectId.instance, propertyName, (err, propertyValue) => {
+      if (err) {
+        propertyRead(null, 'NONE')
+      } else {
+        propertyRead(null, propertyValue.value)
+      }
+    }), (err, values) => {
+      if (err) {
+        console.log('error', err)
+        return objectRead(null, false)
+      }
+      objectRead(null, {
+        id: objectIdToString(objectId),
+        name: values[0],
+        description: values[1]
       })
+    })
   }, (err, result) => {
     if (err) {
       console.log('Error', err)

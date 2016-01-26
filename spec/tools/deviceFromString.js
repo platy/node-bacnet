@@ -7,6 +7,9 @@ function initializeDevice (config) {
   device.on('iam', function (iam) {
     process.send({type: 'iam', event: iam})
   })
+  device.on('read-property-ack', function (event, invokeId) {
+    process.send({type: 'read-property-ack', event: event})
+  })
 }
 
 function handleMessage (message) {
