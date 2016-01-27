@@ -10,6 +10,9 @@ function initializeDevice (config) {
   device.on('read-property-ack', function (event, invokeId) {
     process.send({type: 'read-property-ack', event: event})
   })
+  device.on('error', function (event) {
+    process.send({type: 'error', event: event})
+  })
 }
 
 function handleMessage (message) {
