@@ -112,3 +112,8 @@ regularly.
 
 Another option is that we find a way to get segmentation support, such as by merging this branch - 
 https://svn.code.sf.net/p/bacnet/code/branches/jbennet/bacnet-stack-0-5-7/
+
+### Limited concurrent confirmed requests (Wago)
+
+I noticed that to my Wago controller I only get replies for the first 16 concurrent confirmed requests - it looks like 
+the restriction is on the Wago side rather than in this client - but I can't yet be sure.

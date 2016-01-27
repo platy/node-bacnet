@@ -136,7 +136,7 @@ NAN_METHOD(readProperty) {
 
     if (info[0]->IsNumber()) {  // device id
         int32_t device_id = info[0]->ToInt32()->Value();
-        std::cout << "reading property " << device_id << ", " << object_type << ", " << object_instance << ", " << object_property << std::endl;
+        std::cout << "reading property " << device_id << ", " << object_type << ", " << object_instance << ", " << object_property << ", " << array_index << std::endl;
         invoke_id = Send_Read_Property_Request(
             device_id,
             (BACNET_OBJECT_TYPE)object_type,
