@@ -10,7 +10,7 @@ const r = bacnet.init({
   device: false
 })
 // inclusive range generator
-function * range(from, to) {
+function * range (from, to) {
   while (from <= to) {
     yield from++
   }
@@ -29,7 +29,7 @@ function readArrayPropertySequentially (deviceAddress, objectType, objectInstanc
     console.log('array length = ', propertyValue.value)
     async.mapSeries(Array.from(range(1, propertyValue.value)), (index, indexRead) => r.readProperty(deviceAddress, objectType, objectInstance, propertyKey, index, (err, propertyValue) => {
       if (err) {
-        indexRead(new Error('Failed to read object-list[' + index + '] for device ' + deviceId))
+        indexRead(new Error('Failed to read object-list[' + index + '] for device ' + deviceAddress))
       } else {
         indexRead(null, propertyValue.value)
       }

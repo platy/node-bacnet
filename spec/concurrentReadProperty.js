@@ -3,7 +3,6 @@
 require('should')
 const bacnet = require('../bacnet.js')
 const tools = require('./tools')
-const async = require('async')
 
 const iface = tools.getSuitableBroadcastInterface()
 
@@ -38,7 +37,7 @@ describe('Read property', function () {
         responseCount++
         if (responseCount === concurrentReads) done()
       })
-      for (var i=0; i < concurrentReads; i++) {
+      for (var i = 0; i < concurrentReads; i++) {
         device.readProperty('127.0.0.1', 'device', 260001, propertyKey, false)
       }
     })
