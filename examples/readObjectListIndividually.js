@@ -24,7 +24,7 @@ let timeout = setTimeout(function () {}, 5000)
 function readArrayPropertySequentially (deviceAddress, objectType, objectInstance, propertyKey, callback) {
   this.readProperty(deviceAddress, objectType, Number(objectInstance), propertyKey, 0, (err, propertyValue) => {
     if (err) {
-      console.log('Failed to read object-list length for device', deviceAddress)
+      return console.log('Failed to read object-list length for device', deviceAddress)
     }
     console.log('array length = ', propertyValue.value)
     async.mapSeries(Array.from(range(1, propertyValue.value)), (index, indexRead) => r.readProperty(deviceAddress, objectType, objectInstance, propertyKey, index, (err, propertyValue) => {
@@ -37,8 +37,28 @@ function readArrayPropertySequentially (deviceAddress, objectType, objectInstanc
   })
 }
 
-readArrayPropertySequentially.call(r, process.argv[2], 'device', process.argv[3], 'object-list', (err, objects) => {
-  if (err) console.log('Error reading object list for ' + process.argv[2])
-  else console.log('objects for device ' + process.argv[2], objects)
-  clearTimeout(timeout)
+const deviceAddress = process.argv[2]
+const deviceInstance = process.argv[3]
+readArrayPropertySequentially.call(r, deviceAddress, 'device', deviceInstance, 'object-list', (err, objects) => {
+  if (err) return console.log('Error reading object list for ' + deviceAddress)
+  console.log('Read object list for ' + deviceAddress)
+  async.mapSeries(objects, (objectId, objectDone) => {
+    r.readProperty(deviceAddress, objectId.type, objectId.instance, 'object-name', false, (err, nameProperty) => {
+      if (err) return objectDone(err)
+      objectId.name = nameProperty.value[0]
+      r.readProperty(deviceAddress, objectId.type, objectId.instance, 'description', false, (err, descriptionProperty) => {
+        if (err) return objectDone(null, objectId)
+        objectId.description = descriptionProperty.value[0]
+        objectDone(null, objectId)
+      })
+    })
+  }, (err, objectsComplete) => {
+    if (err) {
+      console.log('Error reading object list extra info for ' + deviceAddress)
+      console.log('objects for device ' + deviceAddress, objects.map(object => object.type + '/' + object.instance))
+    } else {
+      console.log('objects for device ' + deviceAddress, objectsComplete.map(object => object.type + '/' + object.instance + ' : ' + object.name + ' - "' + object.description + '"'))
+    }
+    clearTimeout(timeout)
+  })
 })
