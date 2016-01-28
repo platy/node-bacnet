@@ -24,4 +24,4 @@ os:
 install:
   - npm install
 script:
-  - npm style && npm test
+  - npm run style && npm test
