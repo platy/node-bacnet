@@ -6,7 +6,7 @@ const tools = require('./tools')
 const vendorId = 260
 const segmentation = 0b11
 
-const iface = tools.getSuitableInterface()
+const iface = tools.getSuitableBroadcastInterface()
 const ip = tools.getInterfaceIP(iface)
 
 describe('Whois / Iam', function () {
