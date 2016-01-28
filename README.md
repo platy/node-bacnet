@@ -1,5 +1,7 @@
 # experimental nodejs BACnet wrapper
 
+[![Build Status](https://travis-ci.org/relayr/node-bacnet.svg?branch=master)](https://travis-ci.org/relayr/node-bacnet)
+
 This is an experiment to see if it is viable to build a thin wrapper around the
 [bacnet-stack c library](http://bacnet.sourceforge.net/) using the Node.js addons api.
 

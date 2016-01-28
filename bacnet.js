@@ -1,5 +1,3 @@
-'use strict'
-
 const addon = require('./build/Release/binding.node')
 const bacnet = Object.create(addon)
 
@@ -28,7 +26,7 @@ bacnet.init = function init (config) {
   }
 
   bacnetInterface.on('ack', function (invokeId, response) {
-    let invocationCallback = confirmedCallbacks[invokeId]
+    const invocationCallback = confirmedCallbacks[invokeId]
     if (invocationCallback) {
       invocationCallback(null, response)
     }
@@ -36,7 +34,7 @@ bacnet.init = function init (config) {
 
   bacnetInterface.on('abort', function (invokeId, reason) {
     console.log('abort', invokeId)
-    let invocationCallback = confirmedCallbacks[invokeId]
+    const invocationCallback = confirmedCallbacks[invokeId]
     if (invocationCallback) {
       invocationCallback(new Error(reason))
     }
