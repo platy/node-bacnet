@@ -1,8 +1,10 @@
 language: cpp
-node_js:
-  - "node"
-  - "4"
-compiler: clang-3.6
+env:
+  - NODE_VERSION="node"
+  - NODE_VERSION="4"
+compiler:
+  - clang-3.6
+  - gcc-4.8
 env:
   - CXX=clang-3.6
 addons:
