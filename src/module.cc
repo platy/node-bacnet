@@ -35,7 +35,7 @@ NAN_METHOD(InitInstance) {
     uint32_t bbmd_ttl = getUint32Default(configJs, "bbmd_ttl", 0);
     std::string bbmd_address = getStringOrEmpty(configJs, "bbmd_address");
 
-    struct BACNET_CONFIGURATION config {device_instance_id, ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
+    struct BACNET_CONFIGURATION config = {device_instance_id, ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
     init_bacnet(&config);
 
     Local<Object> target = New<Object>();
