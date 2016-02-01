@@ -3,6 +3,9 @@
     {
       "target_name": "binding",
       "defines": ["PRINT_ENABLED=1"],
+      "dependencies": [
+        "bacnet_stack"
+      ],
       "sources": [
         "src/module.cc",
         "src/functions.cc",
@@ -18,6 +21,41 @@
         "src/h_rp.c",
         "src/h_rp_a.c",
         "src/h_errors.c",
+        "bacnet-stack/demo/handler/h_npdu.c",
+        "bacnet-stack/demo/handler/s_whois.c",
+        "bacnet-stack/demo/handler/s_iam.c",
+        "bacnet-stack/demo/handler/noserv.c",
+        "bacnet-stack/demo/handler/txbuf.c"
+      ],
+      "include_dirs": [
+        "<!(node -e \"require('nan')\")",
+        "include",
+        "bacnet-stack/include",
+        "bacnet-stack/demo/handler"
+      ],
+      "conditions": [
+          [
+            "OS=='mac'",
+            {
+              "include_dirs": [
+                "bacnet-stack/ports/bsd"
+              ]
+            }
+          ], [
+            "OS=='linux'",
+            {
+              "include_dirs": [
+                "bacnet-stack/ports/linux"
+              ]
+            }
+          ]
+        ]
+    },
+    {
+      "target_name": "bacnet_stack",
+      "type": "static_library",
+      "defines": ["PRINT_ENABLED=1"],
+      "sources": [
         "bacnet-stack/src/apdu.c",
         "bacnet-stack/src/npdu.c",
         "bacnet-stack/src/bacdcode.c",
@@ -69,15 +107,8 @@
         "bacnet-stack/src/timestamp.c",
         "bacnet-stack/src/lighting.c",
         "bacnet-stack/src/version.c",
-        "bacnet-stack/demo/handler/h_npdu.c",
-        "bacnet-stack/demo/handler/s_whois.c",
-        "bacnet-stack/demo/handler/s_iam.c",
-        "bacnet-stack/demo/handler/noserv.c",
-        "bacnet-stack/demo/handler/txbuf.c"
       ],
       "include_dirs": [
-        "<!(node -e \"require('nan')\")",
-        "include",
         "bacnet-stack/include",
         "bacnet-stack/demo/handler"
       ],
