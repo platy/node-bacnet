@@ -3,6 +3,7 @@
     {
       "target_name": "binding",
       "defines": ["PRINT_ENABLED=1"],
+      "cflags": ["-std=c++11"],
       "dependencies": [
         "bacnet_stack"
       ],
