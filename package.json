@@ -1,6 +1,7 @@
 {
   "name": "bacnet",
   "version": "0.0.1",
+  "main": "bacnet.js",
   "scripts": {
     "configure": "node-gyp configure && npm run build",
     "clean": "node-gyp clean",
