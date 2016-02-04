@@ -206,6 +206,7 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     case BACNET_APPLICATION_TAG_SIGNED_INT:
         return Nan::New(value->type.Signed_Int);
     case BACNET_APPLICATION_TAG_REAL:
+        std::cout << "Real : " << value->type.Real << std::endl;
         return Nan::New(value->type.Real);
     case BACNET_APPLICATION_TAG_DOUBLE:
         return Nan::New(value->type.Double);
