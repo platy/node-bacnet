@@ -50,6 +50,10 @@
 #error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
 #endif
 
+#if BIG_ENDIAN
+#error Why is the build big endian?
+#endif
+
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
 int decode_real(
