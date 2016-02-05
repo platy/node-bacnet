@@ -196,8 +196,8 @@ Local<Object> bacnetTimeToJ(Nan::HandleScope *scope, BACNET_TIME * time) {
 Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
     BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
     std::cout << "Converting BACnet application value with tag " << bactext_application_tag_name(value->tag) << " and value ";
-    for (int i = 0; i < 8; i++) {
-        std::cout << +(* (((uint8_t *)value) + i)) << ":";
+    for (int i = 0; i < sizeof(float); i++) {
+        std::cout << +(* (((uint8_t *)&value->type) + i)) << ":";
     }
     std::cout << std::endl;
     switch (value->tag) {
