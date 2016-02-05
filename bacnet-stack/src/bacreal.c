@@ -56,6 +56,7 @@ int decode_real(
     uint8_t * apdu,
     float *real_value)
 {
+    printf("real apdu : %d:%d:%d:%d", apdu[0], apdu[1], apdu[2], apdu[3]);
     union {
         uint8_t byte[4];
         float real_value;
@@ -73,9 +74,11 @@ int decode_real(
     my_data.byte[2] = apdu[1];
     my_data.byte[3] = apdu[0];
 #endif
+    printf(" from network conversion : %d:%d:%d:%d", my_data.byte[0], my_data.byte[1], my_data.byte[2], my_data.byte[3]);
 
     *real_value = my_data.real_value;
 
+    printf(" float : %f\n", *real_value);
     return 4;
 }
 
