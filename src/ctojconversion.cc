@@ -195,7 +195,11 @@ Local<Object> bacnetTimeToJ(Nan::HandleScope *scope, BACNET_TIME * time) {
 // Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
 Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
     BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
-    std::cout << "Converting BACnet application value with tag " << bactext_application_tag_name(value->tag) << " and value " << value->type.Unsigned_Int << std::endl;
+    std::cout << "Converting BACnet application value with tag " << bactext_application_tag_name(value->tag) << " and value ";
+    for (int i = 0; i < 8; i++) {
+        std::cout << +(* (((uint8_t *)value) + i)) << ":";
+    }
+    std::cout << std::endl;
     switch (value->tag) {
     case BACNET_APPLICATION_TAG_NULL:
         return Nan::Null();
