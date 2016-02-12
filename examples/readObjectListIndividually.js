@@ -16,7 +16,7 @@ function * range (from, to) {
   }
 }
 
-r.on('error', err => console.log('error in bacnet', err))
+r.on('error', (err) => console.log('error in bacnet', err))
 let timeout = setTimeout(function () {}, 5000)
 
 // Reads an a property by first checking its length and then reading each element, calls the callback with the full array
@@ -55,9 +55,9 @@ readArrayPropertySequentially.call(r, deviceAddress, 'device', deviceInstance, '
   }, (err, objectsComplete) => {
     if (err) {
       console.log('Error reading object list extra info for ' + deviceAddress)
-      console.log('objects for device ' + deviceAddress, objects.map(object => object.type + '/' + object.instance))
+      console.log('objects for device ' + deviceAddress, objects.map((object) => object.type + '/' + object.instance))
     } else {
-      console.log('objects for device ' + deviceAddress, objectsComplete.map(object => object.type + '/' + object.instance + ' : ' + object.name + ' - "' + object.description + '"'))
+      console.log('objects for device ' + deviceAddress, objectsComplete.map((object) => object.type + '/' + object.instance + ' : ' + object.name + ' - "' + object.description + '"'))
     }
     clearTimeout(timeout)
   })

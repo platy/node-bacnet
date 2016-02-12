@@ -34,7 +34,7 @@ describe('Confirmed requests', function () {
     before('soak', function (done) {
       device.once('error', done)
       async.mapSeries(Array.from(range(1, soakSize)), (requestNo, requestComplete) => {
-        device.once('ack', invokeId => {
+        device.once('ack', (invokeId) => {
           requestComplete()
         })
         device.readProperty('127.0.0.1', 'device', 260001, propertyKey, false)
@@ -48,7 +48,7 @@ describe('Confirmed requests', function () {
     const propertyKey = 'description'
     it('can read the \'' + propertyKey + '\' property', function (done) {
       device.once('error', done)
-      device.once('read-property-ack', property => {
+      device.once('read-property-ack', (property) => {
         property.object.should.deepEqual({ type: 'device', instance: 260001 })
         property.property.should.equal(bacnet.propertyKeyToNumber(propertyKey))
         property.value.should.deepEqual([ 'server' ])
