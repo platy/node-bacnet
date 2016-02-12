@@ -8,7 +8,7 @@ const r = bacnet.init({
   device: true
 })
 
-r.on('error', err => console.log('error in bacnet', err))
+r.on('error', (err) => console.log('error in bacnet', err))
 
 function objectIdToString (objectId) {
   return bacnet.objectTypeToString(objectId.type) + '/' + objectId.instance
@@ -51,7 +51,7 @@ function receiveObjectList (err, property) {
   })
 }
 
-r.on('error', err => console.log('error in bacnet', err))
+r.on('error', (err) => console.log('error in bacnet', err))
 
 r.readProperty('127.0.0.1', 'device', 260001, 'object-list', false, receiveObjectList)
 

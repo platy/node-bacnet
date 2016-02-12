@@ -16,7 +16,7 @@ describe('Whois / Iam', function () {
     device.exit()
   })
   describe('with default settings', function () {
-    before(function (done) {
+    before('Fork device', function (done) {
       device = tools.deviceProcess({
         datalink: {
           iface: iface

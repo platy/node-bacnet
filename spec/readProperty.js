@@ -55,7 +55,7 @@ describe('Read property', function () {
     // readOwnDeviceObjectPropertyTest('max-master', [])
     function readOwnDeviceObjectPropertyTest (propertyKey, value) {
       it('can read the \'' + propertyKey + '\' property', function (done) {
-        device.once('read-property-ack', property => {
+        device.once('read-property-ack', (property) => {
           property.object.should.deepEqual({type: 'device', instance: 260001})
           property.property.should.equal(bacnet.propertyKeyToNumber(propertyKey))
           property.value.should.deepEqual(value)

@@ -30,7 +30,7 @@ describe('Read property', function () {
     const propertyKey = 'object-name'
     it('can read the \'' + propertyKey + '\' property concurrently ' + concurrentReads + ' times', function (done) {
       device.once('error', done)
-      device.on('read-property-ack', property => {
+      device.on('read-property-ack', (property) => {
         property.object.should.deepEqual({ type: 'device', instance: 260001 })
         property.property.should.equal(bacnet.propertyKeyToNumber(propertyKey))
         property.value.should.deepEqual([ 'SimpleServer' ])

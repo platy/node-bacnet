@@ -1,5 +1,6 @@
 const fork = require('child_process').fork
 const os = require('os')
+const path = require('path')
 
 function runningDeviceMessage (message) {
   this.emit(message.type, message.event)
@@ -18,7 +19,7 @@ function readProperty (device, objectType, objectInstance, propertyId, arrayInde
 }
 
 exports.deviceProcess = function deviceProcess (config) {
-  const device = fork(__dirname + '/deviceFromString.js')
+  const device = fork(path.join(__dirname, '/deviceFromString.js'))
   device.send(config || false) // initialises with no args
   device.exit = exit
   device.whois = whois

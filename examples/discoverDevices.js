@@ -16,7 +16,7 @@ const range = function * (from, to) {
   }
 }
 
-r.on('error', err => console.log('error in bacnet', err))
+r.on('error', (err) => console.log('error in bacnet', err))
 let timeout = setTimeout(function () {}, 5000)
 
 const deviceProperties = ['object-identifier', 'object-name', 'description', 'system-status', 'vendor-name',
