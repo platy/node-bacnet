@@ -1,10 +1,9 @@
-language: node_js
-node_js:
-  - "node"
-  - "4"
-compiler: clang-3.6
+language: cpp
 env:
-  - CXX=clang-3.6
+  - NODE_VERSION="node"
+  - NODE_VERSION="4"
+compiler:
+  - clang-3.6
 addons:
   apt:
     sources:
@@ -13,3 +12,15 @@ addons:
     packages:
       - clang-3.6
       - g++-4.8
+before_install:
+  - git clone https://github.com/creationix/nvm.git /tmp/.nvm;
+    source /tmp/.nvm/nvm.sh;
+    nvm install $NODE_VERSION;
+    nvm use --delete-prefix $NODE_VERSION;
+os:
+  - linux
+  - osx
+install:
+  - npm install
+script:
+  - npm run style && npm test
