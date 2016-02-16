@@ -124,6 +124,79 @@ uint8_t inferBacnetType(Local<Value> jvalue) {
     return 0; // Success
 }
 
+int bacnetOctetStringToC(BACNET_OCTET_STRING * cvalue, Local<Value> jvalue) {
+    Local<Object> bjvalue = Nan::To<Object>(jvalue).ToLocalChecked();
+    size_t bufferLength = node::Buffer::Length(bjvalue);
+    if (bufferLength < MAX_OCTET_STRING_BYTES) {
+        cvalue->length = bufferLength;
+        memcpy(node::Buffer::Data(bjvalue), cvalue->value, bufferLength);
+        return 0;
+    } else {
+        return 2; // Error: Too large
+    }
+}
+
+int bacnetCharacterStringToC(BACNET_CHARACTER_STRING * cvalue, Local<Value> jvalue) {
+    Local<String> sjvalue = Nan::To<String>(jvalue).ToLocalChecked();
+    if (sjvalue->Utf8Length() < MAX_CHARACTER_STRING_BYTES) {
+        cvalue->length = sjvalue->Utf8Length();
+        cvalue->encoding = CHARACTER_UTF8;
+        sjvalue->WriteUtf8(cvalue->value);
+        return 0;
+    } else {
+        return 2; // Error: Too large
+    }
+}
+
+int bacnetBitStringToC(BACNET_BIT_STRING * cvalue, Local<Value> jvalue) {
+    Local<Object> bjvalue = Nan::To<Object>(jvalue).ToLocalChecked();
+    size_t bufferLength = node::Buffer::Length(bjvalue);
+    if (bufferLength < MAX_BITSTRING_BYTES) {
+        cvalue->bits_used = bufferLength * 8;
+        memcpy(node::Buffer::Data(bjvalue), cvalue->value, bufferLength);
+            return 0;
+    } else {
+        return 2; // Error: Too large
+    }
+}
+
+int bacnetDateToC(BACNET_DATE * cvalue, Local<Value> jvalue) {
+    Local<Object> jobject = Nan::To<Object>(jvalue).ToLocalChecked();
+    cvalue->year = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("year").ToLocalChecked()).ToLocalChecked()).FromJust();
+    cvalue->month = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("month").ToLocalChecked()).ToLocalChecked()).FromJust();
+    cvalue->day = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("day").ToLocalChecked()).ToLocalChecked()).FromJust();
+    std::string weekdaystring = getStringOrEmpty(jobject, "weekday");
+    unsigned int wday;
+    if (bactext_days_of_week_index(weekdaystring.c_str(), &wday)) {
+        cvalue->wday = wday + 1; // BACnet has 2 different enumeration schemes for weekdays, oe starting Monday=1 - that's the one we use
+        return 0;
+    } else {
+        return 3;
+    }
+}
+
+int bacnetTimeToC(BACNET_TIME * cvalue, Local<Value> jvalue) {
+    Local<Object> jobject = Nan::To<Object>(jvalue).ToLocalChecked();
+    cvalue->hour = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("hour").ToLocalChecked()).ToLocalChecked()).FromJust();
+    cvalue->min = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("min").ToLocalChecked()).ToLocalChecked()).FromJust();
+    cvalue->sec = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("sec").ToLocalChecked()).ToLocalChecked()).FromJust();
+    cvalue->hundredths = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("hundredths").ToLocalChecked()).ToLocalChecked()).FromJust();
+    return 0;
+}
+
+int bacnetObjectHandleToC(BACNET_OBJECT_ID * cvalue, Local<Value> jvalue) {
+    Local<Object> jobject = Nan::To<Object>(jvalue).ToLocalChecked();
+    std::string objectTypeName = getStringOrEmpty(jobject, "type");
+    unsigned objectTypeIndex;
+    if (bactext_object_type_index(objectTypeName.c_str(), &objectTypeIndex)) {
+        cvalue->type = objectTypeIndex;
+        cvalue->instance = Nan::To<uint32_t>(Nan::Get(jobject, Nan::New("instance").ToLocalChecked()).ToLocalChecked()).FromJust();
+        return 0;
+    } else {
+        return 3;
+    }
+}
+
 // For enums we'll need to know the context - ie properties and stuff
 // This shouldn't be called for arrays as we dont know whether the return value is an array
 // TODO check types etc
@@ -148,37 +221,20 @@ int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalu
         cvalue->type.Double = Nan::To<double>(jvalue).FromJust();
         return 0;
     case BACNET_APPLICATION_TAG_OCTET_STRING:
-        {
-        Local<Object> bjvalue = Nan::To<Object>(jvalue).ToLocalChecked();
-        size_t bufferLength = node::Buffer::Length(bjvalue);
-        if (bufferLength < MAX_OCTET_STRING_BYTES) {
-            cvalue->type.Octet_String.length = bufferLength;
-            memcpy(node::Buffer::Data(bjvalue), cvalue->type.Octet_String.value, bufferLength);
-            return 0;
-        } else {
-            return 2; // Error: Too large
-        }
-        }
+        return bacnetOctetStringToC(&cvalue->type.Octet_String, jvalue);
     case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-        Local<String> sjvalue = Nan::To<String>(jvalue).ToLocalChecked();
-        if (sjvalue->Utf8Length() < MAX_CHARACTER_STRING_BYTES) {
-            cvalue->type.Character_String.length = sjvalue->Utf8Length();
-            cvalue->type.Character_String.encoding = CHARACTER_UTF8;
-            sjvalue->WriteUtf8(cvalue->type.Character_String.value);
-            return 0;
-        } else {
-            return 2; // Error: Too large
-        }
-//    case BACNET_APPLICATION_TAG_BIT_STRING:
-//        return bitStringToBuffer(scope, value->type.Bit_String);
-//    case BACNET_APPLICATION_TAG_ENUMERATED:
-//        return Nan::New(value->type.Enumerated); // without the context of the property id the enumeration value is just a number
-//    case BACNET_APPLICATION_TAG_DATE:
-//        return bacnetDateToJ(scope, &value->type.Date);
-//    case BACNET_APPLICATION_TAG_TIME:
-//        return bacnetTimeToJ(scope, &value->type.Time);
-//    case BACNET_APPLICATION_TAG_OBJECT_ID:
-//        return objectHandleToJ(scope, (BACNET_OBJECT_TYPE) value->type.Object_Id.type, value->type.Object_Id.instance);
+        return bacnetCharacterStringToC(&cvalue->type.Character_String, jvalue);
+    case BACNET_APPLICATION_TAG_BIT_STRING:
+        return bacnetBitStringToC(&cvalue->type.Bit_String, jvalue);
+    case BACNET_APPLICATION_TAG_ENUMERATED:
+        cvalue->type.Enumerated = Nan::To<uint32_t>(jvalue).FromJust(); // without the context of the property id the enumeration value is just a number
+        return 0;
+    case BACNET_APPLICATION_TAG_DATE:
+        return bacnetDateToC(&cvalue->type.Date, jvalue);
+    case BACNET_APPLICATION_TAG_TIME:
+        return bacnetTimeToC(&cvalue->type.Time, jvalue);
+    case BACNET_APPLICATION_TAG_OBJECT_ID:
+        return bacnetObjectHandleToC(&cvalue->type.Object_Id, jvalue);
     }
     std::cout << "ERROR: value tag (" << +cvalue->tag << ") not converted to js '" << bactext_application_tag_name(cvalue->tag) << "'" << std::endl;
     return 1;

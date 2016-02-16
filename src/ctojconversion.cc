@@ -48,9 +48,12 @@ Local<Value> octetStringToBuffer(Nan::HandleScope *scope, BACNET_OCTET_STRING oc
     return Nan::Encode(octet_string.value, octet_string.length, Nan::Encoding::BUFFER);
 }
 
-Local<Value> bitStringToBuffer(Nan::HandleScope *scope, BACNET_BIT_STRING bit_string) {
+// bit string is converted to a biffer with an extra field 'bitLength' specifying the number of bits used
+Local<Object> bitStringToBuffer(Nan::HandleScope *scope, BACNET_BIT_STRING bit_string) {
     int byte_length = (bit_string.bits_used + 8 - 1) / 8;
-    return Nan::Encode(bit_string.value, byte_length, Nan::Encoding::BUFFER);
+    Local<Object> buffer = Nan::To<Object>(Nan::Encode(bit_string.value, byte_length, Nan::Encoding::BUFFER)).ToLocalChecked();
+    Nan::Set(buffer, Nan::New("bitLength").ToLocalChecked(), Nan::New(bit_string.bits_used));
+    return buffer;
 }
 
 // TODO: what does it involve to support this?
@@ -67,7 +70,7 @@ Local<String> characterStringToBuffer(Nan::HandleScope *scope, BACNET_CHARACTER_
     case CHARACTER_UCS2:
         return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::UCS2).As<String>();
     case CHARACTER_ISO8859:
-        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::ASCII).As<String>();
+        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::BINARY).As<String>();
     }
     return Nan::New("Unsupported string encoding - Unknown").ToLocalChecked();
 }

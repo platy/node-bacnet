@@ -1,4 +1,4 @@
-/* globals it, describe */
+/* globals it, describe, xdescribe */
 'use strict'
 
 const should = require('should')
@@ -74,8 +74,52 @@ describe('Application value converters between BACnet and js domain', () => {
     })
   })
   describe('character string conversion roundtrip', () => {
-    roundTripConversionTest(['hello', 'world'], (value) => {
+    roundTripConversionTest(['Hallå', 'världen'], (value) => {
       let bacnetValue = new BacnetValue(value, 7)
+      bacnetValue.valueOf().should.equal(value)
+      let bacnetBytes = bacnetValue.bytes()
+      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
+      console.log(BacnetValue.fromBytes(bacnetBytes))
+    })
+  })
+  xdescribe('bit string conversion roundtrip', () => {
+    roundTripConversionTest([new Buffer('hello')], (value) => {
+      let bacnetValue = new BacnetValue(value, 8)
+      console.log(bacnetValue)
+      bacnetValue.valueOf().should.equal(value)
+      let bacnetBytes = bacnetValue.bytes()
+      console.log('produced bacnet bytes', bacnetBytes)
+      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
+      console.log(bacnetValue)
+    })
+  })
+  describe('enumerated conversion roundtrip', () => {
+    roundTripConversionTest([0, 200], (value) => {
+      let bacnetValue = new BacnetValue(value, 9)
+      bacnetValue.valueOf().should.equal(value)
+      let bacnetBytes = bacnetValue.bytes()
+      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
+    })
+  })
+  describe('date conversion roundtrip', () => {
+    roundTripConversionTest([{year: 2016, month: 2, day: 16, weekday: 'Wednesday'}], (value) => {
+      let bacnetValue = new BacnetValue(value, 10)
+      bacnetValue.valueOf().should.equal(value)
+      let bacnetBytes = bacnetValue.bytes()
+      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
+    })
+  })
+  describe('time conversion roundtrip', () => {
+    roundTripConversionTest([{hour: 1, min: 2, sec: 3, hundredths: 4}], (value) => {
+      let bacnetValue = new BacnetValue(value, 11)
+      bacnetValue.valueOf().should.equal(value)
+      let bacnetBytes = bacnetValue.bytes()
+      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
+    })
+  })
+  describe('object id conversion roundtrip', () => {
+    roundTripConversionTest([{type: 'device', instance: 123456}], (value) => {
+      let bacnetValue = new BacnetValue(value, 12)
       bacnetValue.valueOf().should.equal(value)
       let bacnetBytes = bacnetValue.bytes()
       BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
