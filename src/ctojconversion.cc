@@ -72,7 +72,7 @@ Local<String> characterStringToBuffer(Nan::HandleScope *scope, BACNET_CHARACTER_
     return Nan::New("Unsupported string encoding - Unknown").ToLocalChecked();
 }
 
-Local<String> bacnetEnumToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * object_value) {
+Local<String> bacnetPropertyEnumToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * object_value) {
     char str[20];
     int str_len = 20;
     char *char_str;
@@ -193,8 +193,7 @@ Local<Object> bacnetTimeToJ(Nan::HandleScope *scope, BACNET_TIME * time) {
 }
 
 // Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
-Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
-    BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
+Local<Value> bacnetApplicationValueToJ(Nan::HandleScope *scope, BACNET_APPLICATION_DATA_VALUE * value) {
     switch (value->tag) {
     case BACNET_APPLICATION_TAG_NULL:
         return Nan::Null();
@@ -215,7 +214,7 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     case BACNET_APPLICATION_TAG_BIT_STRING:
         return bitStringToBuffer(scope, value->type.Bit_String);
     case BACNET_APPLICATION_TAG_ENUMERATED:
-        return bacnetEnumToJ(scope, propertyValue);
+        return Nan::New(value->type.Enumerated); // without the context of the property id the enumeration value is just a number
     case BACNET_APPLICATION_TAG_DATE:
         return bacnetDateToJ(scope, &value->type.Date);
     case BACNET_APPLICATION_TAG_TIME:
@@ -225,6 +224,17 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     }
     std::cout << "ERROR: value tag (" << +value->tag << ") not converted to js '" << bactext_application_tag_name(value->tag) << "'" << std::endl;
     return Nan::Null();
+}
+
+// Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
+Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
+    BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
+    switch (value->tag) {
+    case BACNET_APPLICATION_TAG_ENUMERATED:
+        return bacnetPropertyEnumToJ(scope, propertyValue);
+    default:
+        return bacnetApplicationValueToJ(scope, value);
+    }
 }
 
 // Reads a bacnet application data value from the raw data and returns as a js value

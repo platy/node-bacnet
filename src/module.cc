@@ -1,6 +1,7 @@
 #include <iostream>
 #include <v8.h>
 #include <nan.h>
+#include "BacnetValue.h"
 #include "functions.h"
 #include "init.h"
 #include "conversion.h"
@@ -64,6 +65,8 @@ NAN_MODULE_INIT(InitModule) {
       Nan::GetFunction(New<FunctionTemplate>(propertyKeyToString)).ToLocalChecked());
     Nan::Set(target, New("propertyKeyToNumber").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(propertyKeyToNumber)).ToLocalChecked());
+
+    BacnetValue::Init(target);
 }
 
 NODE_MODULE(binding, InitModule)

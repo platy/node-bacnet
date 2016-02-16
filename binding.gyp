@@ -16,6 +16,7 @@
         "src/emitter.cc",
         "src/jtocconversion.cc",
         "src/ctojconversion.cc",
+        "src/BacnetValue.cc",
         "src/s_rp.c",
         "src/init.c",
         "src/device.c",

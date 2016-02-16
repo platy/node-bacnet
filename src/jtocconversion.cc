@@ -1,7 +1,11 @@
+#include <iostream>
 #include <v8.h>
+#include <node.h>
 #include <nan.h>
 #include "address.h"
 #include "datalink.h"
+#include "bacapp.h"
+#include "bactext.h"
 
 using v8::Local;
 using v8::Value;
@@ -97,4 +101,85 @@ BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue) {
         datalink_get_broadcast_address(&dest);
     }
     return dest;
+}
+
+// For enums we'll need to know the context - ie properties and stuff
+// This shouldn't be called for arrays as we dont know whether the return value is an array
+uint8_t inferBacnetType(Local<Value> jvalue) {
+    if (jvalue->IsNull()) {
+        return BACNET_APPLICATION_TAG_NULL;
+    } else if (jvalue->IsBoolean()) {
+        return BACNET_APPLICATION_TAG_BOOLEAN;
+    } else if (jvalue->IsString()) {
+        return BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    } else if (jvalue->IsInt32()) {
+        return BACNET_APPLICATION_TAG_SIGNED_INT;
+    } else if (jvalue->IsUint32()) {
+        return BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    } else if (jvalue->IsNumber()) {
+        return BACNET_APPLICATION_TAG_DOUBLE; // I don't think there's a reason to use float instead
+    } else {
+        return 1; // Error : unsupported type (array, object, symbol)
+    }
+    return 0; // Success
+}
+
+// For enums we'll need to know the context - ie properties and stuff
+// This shouldn't be called for arrays as we dont know whether the return value is an array
+// TODO check types etc
+int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalue, BACNET_APPLICATION_TAG tag) {
+    cvalue->tag = tag;
+    switch (tag) {
+    case BACNET_APPLICATION_TAG_NULL:
+        return 0;
+    case BACNET_APPLICATION_TAG_BOOLEAN:
+        cvalue->type.Boolean = Nan::To<bool>(jvalue).FromJust();
+        return 0;
+    case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+        cvalue->type.Unsigned_Int = Nan::To<uint32_t>(jvalue).FromJust();
+        return 0;
+    case BACNET_APPLICATION_TAG_SIGNED_INT:
+        cvalue->type.Signed_Int = Nan::To<int32_t>(jvalue).FromJust();
+        return 0;
+    case BACNET_APPLICATION_TAG_REAL:
+        cvalue->type.Real = Nan::To<double>(jvalue).FromJust();
+        return 0;
+    case BACNET_APPLICATION_TAG_DOUBLE:
+        cvalue->type.Double = Nan::To<double>(jvalue).FromJust();
+        return 0;
+    case BACNET_APPLICATION_TAG_OCTET_STRING:
+        {
+        Local<Object> bjvalue = Nan::To<Object>(jvalue).ToLocalChecked();
+        size_t bufferLength = node::Buffer::Length(bjvalue);
+        if (bufferLength < MAX_OCTET_STRING_BYTES) {
+            cvalue->type.Octet_String.length = bufferLength;
+            memcpy(node::Buffer::Data(bjvalue), cvalue->type.Octet_String.value, bufferLength);
+            return 0;
+        } else {
+            return 2; // Error: Too large
+        }
+        }
+    case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+        Local<String> sjvalue = Nan::To<String>(jvalue).ToLocalChecked();
+        if (sjvalue->Utf8Length() < MAX_CHARACTER_STRING_BYTES) {
+            cvalue->type.Character_String.length = sjvalue->Utf8Length();
+            cvalue->type.Character_String.encoding = CHARACTER_UTF8;
+            sjvalue->WriteUtf8(cvalue->type.Character_String.value);
+            return 0;
+        } else {
+            return 2; // Error: Too large
+        }
+//    case BACNET_APPLICATION_TAG_BIT_STRING:
+//        return bitStringToBuffer(scope, value->type.Bit_String);
+//    case BACNET_APPLICATION_TAG_ENUMERATED:
+//        return Nan::New(value->type.Enumerated); // without the context of the property id the enumeration value is just a number
+//    case BACNET_APPLICATION_TAG_DATE:
+//        return bacnetDateToJ(scope, &value->type.Date);
+//    case BACNET_APPLICATION_TAG_TIME:
+//        return bacnetTimeToJ(scope, &value->type.Time);
+//    case BACNET_APPLICATION_TAG_OBJECT_ID:
+//        return objectHandleToJ(scope, (BACNET_OBJECT_TYPE) value->type.Object_Id.type, value->type.Object_Id.instance);
+    }
+    std::cout << "ERROR: value tag (" << +cvalue->tag << ") not converted to js '" << bactext_application_tag_name(cvalue->tag) << "'" << std::endl;
+    return 1;
 }
