@@ -32,18 +32,14 @@ NAN_METHOD(objectTypeToString) {
     }
 }
 NAN_METHOD(objectTypeToNumber) {
-    if (info.Length() >= 1 && info[0]->IsString()) {
-        unsigned index;
-        if (bactext_object_type_index(extractString(info[0].As<v8::String>()).c_str(), &index)) {
-            info.GetReturnValue().Set(Nan::New(index));
+    if (info.Length() >= 1) {
+        unsigned value;
+        const char * error = objectTypeToC(info[0], &value);
+        if (error) {
+            Nan::ThrowError(error);
         } else {
-            Nan::ThrowError("Object type string not valid");
+            info.GetReturnValue().Set(Nan::New(value));
         }
-    } else if (info.Length() >= 1 && info[0]->IsUint32()) {
-        const char * name = bactext_object_type_name(info[0]->ToUint32()->Value());
-        unsigned index;
-        bactext_object_type_index(name, &index);
-        info.GetReturnValue().Set(Nan::New(index));
     } else {
         Nan::ThrowError("Object type must be either a string or unsigned int");
     }

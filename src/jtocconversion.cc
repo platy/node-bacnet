@@ -239,3 +239,38 @@ int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalu
     std::cout << "ERROR: value tag (" << +cvalue->tag << ") not converted to js '" << bactext_application_tag_name(cvalue->tag) << "'" << std::endl;
     return 1;
 }
+
+// converts a value representing a bacnet object type to its enum value
+const char * objectTypeToC(Local<Value> type, unsigned * index) {
+    if (type->IsString()) {
+        if (bactext_object_type_index(extractString(type.As<v8::String>()).c_str(), index)) {
+            return 0;
+        } else {
+            return "Object type string not valid";
+        }
+    } else if (type->IsUint32()) {
+        const char * name = bactext_object_type_name(type->ToUint32()->Value());
+        bactext_object_type_index(name, index);
+        return 0;
+    } else {
+        return "Object type must be either a string or unsigned int";
+    }
+}
+
+// converts a value representing a bacnet value application tag to its enum value
+// returns zero on success or an error string
+const char * applicationTagToC(Local<Value> type, unsigned * index) {
+    if (type->IsString()) {
+        if (bactext_application_tag_index(extractString(type.As<v8::String>()).c_str(), index)) {
+            return 0;
+        } else {
+            return "Application tag string not valid";
+        }
+    } else if (type->IsUint32()) {
+        const char * name = bactext_application_tag_name(type->ToUint32()->Value());
+        bactext_application_tag_index(name, index);
+        return 0;
+    } else {
+        return "Application tag must be either a string or unsigned int";
+    }
+}

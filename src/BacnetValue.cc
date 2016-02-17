@@ -2,6 +2,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <bacapp.h>
+#include <bactext.h>
 #include <nan.h>
 #include "BacnetValue.h"
 #include "conversion.h"
@@ -50,13 +51,18 @@ NAN_METHOD(BacnetValue::FromJs) {
             Nan::ThrowError("Type inference unsupported, supply tag");
             return;
         }
-        uint8_t type_tag = Nan::To<uint32_t>(info[1]).FromJust();
-        BacnetValue* obj = new BacnetValue();
-        std::cout << "creating value " << extractString(info[0]->ToString()) << " with type " << +type_tag << std::endl;
-        obj->Wrap(info.This());
-        Nan::Set(info.This(), Nan::New("value").ToLocalChecked(), info[0]);
-        Nan::Set(info.This(), Nan::New("tag").ToLocalChecked(), info[1]);
-        info.GetReturnValue().Set(info.This());
+        unsigned type_tag;
+        const char * tagError = applicationTagToC(info[1], &type_tag);
+        if (tagError) {
+            Nan::ThrowError(tagError);
+        } else {
+            BacnetValue* obj = new BacnetValue();
+            std::cout << "creating value " << extractString(info[0]->ToString()) << " with type " << +type_tag << std::endl;
+            obj->Wrap(info.This());
+            Nan::Set(info.This(), Nan::New("value").ToLocalChecked(), info[0]);
+            Nan::Set(info.This(), Nan::New("tag").ToLocalChecked(), info[1]);
+            info.GetReturnValue().Set(info.This());
+        }
     } else {
         // Invoked as plain function `BacnetValue(...)`, turn into construct call.
         const int argc = 2;
@@ -82,9 +88,11 @@ NAN_METHOD(BacnetValue::FromBytes) {
 
     Local<Value> jsValue = bacnetApplicationValueToJ(&scope, value);
 
-    std::cout << "interpreted value as having " << extractString(jsValue->ToString()) << " with type " << +value->tag << std::endl;
+
+    const char * tagName = bactext_application_tag_name(value->tag);
+    std::cout << "interpreted value as having " << extractString(jsValue->ToString()) << " with type " << tagName << std::endl;
     const int argc = 2;
-    Local<Value> argv[argc] = { jsValue, Nan::New<Number>(value->tag) };
+    Local<Value> argv[argc] = { jsValue, Nan::New(tagName).ToLocalChecked() };
     Local<Function> cons = Nan::New(constructor());
     info.GetReturnValue().Set(cons->NewInstance(argc, argv));
 }
@@ -124,8 +132,16 @@ Local<Value> BacnetValue::value() {
 BACNET_APPLICATION_TAG BacnetValue::tag() {
     Local<String> key = Nan::New("tag").ToLocalChecked();
     Local<Value> value = Nan::Get(handle(), key).ToLocalChecked();
-    uint32_t number = Nan::To<uint32_t>(value).FromJust();
-    return static_cast<BACNET_APPLICATION_TAG>(number); // not handling the value not being set - could fail if its deleted
+    unsigned type_tag;
+    const char * tagError = applicationTagToC(value, &type_tag);
+    if (tagError) {
+        std::cout << "Error reinterpreting tag " << tagError << " - was it changed?" << std::endl;
+        Nan::ThrowError(tagError);
+        return MAX_BACNET_APPLICATION_TAG;
+    } else {
+        std::cout << "Reinterpreting tag as " << type_tag << std::endl;
+        return static_cast<BACNET_APPLICATION_TAG>(type_tag);
+    }
 }
 
 BACNET_APPLICATION_DATA_VALUE * BacnetValue::bacnetValue() {

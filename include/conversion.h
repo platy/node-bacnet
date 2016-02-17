@@ -15,6 +15,8 @@ std::string getStringOrEmpty(Local<Object> target, std::string key);
 std::string extractString(Local<String> jsString);
 BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue);
 int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalue, BACNET_APPLICATION_TAG tag);
+const char * objectTypeToC(Local<Value> type, unsigned * index);
+const char * applicationTagToC(Local<Value> type, unsigned * index);
 
 // Converts the BACNET_READ_PROPERTY_DATA to a js object
 //{

@@ -10,120 +10,55 @@ describe('Application value converters between BACnet and js domain', () => {
     BacnetValue(0, 4).should.not.deepEqual(BacnetValue(0, 5))
     BacnetValue(0, 4).should.not.deepEqual(BacnetValue(1, 4))
   })
-  function roundTripConversionTest (inputs, roundTripTest) {
-    inputs.forEach((input) => {
-      it('works for [' + input + ']', () => {
-        roundTripTest(input)
+  function roundTripConversionTest (inputs, valueType) {
+    inputs.forEach((value) => {
+      it('works for [' + value + ']', () => {
+        let bacnetValue = new BacnetValue(value, valueType)
+        should(bacnetValue.valueOf()).equal(value)
+        let bacnetBytes = bacnetValue.bytes()
+        console.log(bacnetBytes)
+        BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
       })
     })
   }
   describe('null conversion roundtrip', () => {
-    roundTripConversionTest([null], (value) => {
-      let bacnetValue = new BacnetValue(value, 0)
-      should(bacnetValue.valueOf()).equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([null], 'Null')
   })
   describe('boolean conversion roundtrip', () => {
-    roundTripConversionTest([true, false], (value) => {
-      let bacnetValue = new BacnetValue(value, 1)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([true, false], 'Boolean')
   })
   describe('unsigned conversion roundtrip', () => {
-    roundTripConversionTest([0, 4000000000], (value) => {
-      let bacnetValue = new BacnetValue(value, 2)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([0, 4000000000], 'Unsigned Int')
   })
   describe('signed conversion roundtrip', () => {
-    roundTripConversionTest([-2000000000, 0, 2000000000], (value) => {
-      let bacnetValue = new BacnetValue(value, 3)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([-2000000000, 0, 2000000000], 'Signed Int')
   })
   describe('float conversion roundtrip', () => {    // Float loses some precision during change between double (in js) and float
-    roundTripConversionTest([0, 2 ^ -30, -2 ^ -30, 1e10, -1e10], (value) => {
-      let bacnetValue = new BacnetValue(value, 4)
-      Number(bacnetValue).should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([0, 2 ^ -30, -2 ^ -30, 1e10, -1e10], 'Real')
   })
   describe('double conversion roundtrip', () => {
-    roundTripConversionTest([0, 1e-37, -1e-37, 1e10, -1e10, Number.MAX_VALUE, Number.MIN_VALUE], (value) => {
-      let bacnetValue = new BacnetValue(value, 5)
-      Number(bacnetValue).should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([0, 1e-37, -1e-37, 1e10, -1e10, Number.MAX_VALUE, Number.MIN_VALUE], 'Double')
   })
   describe('octet string conversion roundtrip', () => {
-    roundTripConversionTest([new Buffer(0), new Buffer([0, 1, 2])], (value) => {
-      let bacnetValue = new BacnetValue(value, 6)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([new Buffer(0), new Buffer([0, 1, 2])], 'Octet String')
   })
   describe('character string conversion roundtrip', () => {
-    roundTripConversionTest(['Hallå', 'världen'], (value) => {
-      let bacnetValue = new BacnetValue(value, 7)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-      console.log(BacnetValue.fromBytes(bacnetBytes))
-    })
+    roundTripConversionTest(['Hallå', 'världen'], 'Character String')
   })
   xdescribe('bit string conversion roundtrip', () => {
-    roundTripConversionTest([new Buffer('hello')], (value) => {
-      let bacnetValue = new BacnetValue(value, 8)
-      console.log(bacnetValue)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      console.log('produced bacnet bytes', bacnetBytes)
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-      console.log(bacnetValue)
-    })
+    roundTripConversionTest([new Buffer('hello')], 'Bit String')
   })
   describe('enumerated conversion roundtrip', () => {
-    roundTripConversionTest([0, 200], (value) => {
-      let bacnetValue = new BacnetValue(value, 9)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([0, 200], 'Enumerated')
   })
   describe('date conversion roundtrip', () => {
-    roundTripConversionTest([{year: 2016, month: 2, day: 16, weekday: 'Wednesday'}], (value) => {
-      let bacnetValue = new BacnetValue(value, 10)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([{year: 2016, month: 2, day: 16, weekday: 'Wednesday'}], 'Date')
   })
   describe('time conversion roundtrip', () => {
-    roundTripConversionTest([{hour: 1, min: 2, sec: 3, hundredths: 4}], (value) => {
-      let bacnetValue = new BacnetValue(value, 11)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([{hour: 1, min: 2, sec: 3, hundredths: 4}], 'Time')
   })
   describe('object id conversion roundtrip', () => {
-    roundTripConversionTest([{type: 'device', instance: 123456}], (value) => {
-      let bacnetValue = new BacnetValue(value, 12)
-      bacnetValue.valueOf().should.equal(value)
-      let bacnetBytes = bacnetValue.bytes()
-      BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
-    })
+    roundTripConversionTest([{type: 'device', instance: 123456}], 'Object ID')
   })
 
   // round trip conversions wont make sure the endianness is correct
