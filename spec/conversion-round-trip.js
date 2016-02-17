@@ -16,7 +16,6 @@ describe('Application value converters between BACnet and js domain', () => {
         let bacnetValue = new BacnetValue(value, valueType)
         should(bacnetValue.valueOf()).equal(value)
         let bacnetBytes = bacnetValue.bytes()
-        console.log(bacnetBytes)
         BacnetValue.fromBytes(bacnetBytes).should.deepEqual(bacnetValue)
       })
     })
@@ -59,6 +58,25 @@ describe('Application value converters between BACnet and js domain', () => {
   })
   describe('object id conversion roundtrip', () => {
     roundTripConversionTest([{type: 'device', instance: 123456}], 'Object ID')
+  })
+
+  describe('type inference', () => {
+    function typeInferenceTest (value, valueType) {
+      it('infers type of [' + valueType + '] for value [' + value + ']', () => {
+        let bacnetValue = new BacnetValue(value)
+        should(bacnetValue.valueOf()).equal(value)
+        let bacnetBytes = bacnetValue.bytes()
+        BacnetValue.fromBytes(bacnetBytes).should.deepEqual(new BacnetValue(value, valueType))
+      })
+    }
+    typeInferenceTest(null, 'Null')
+    typeInferenceTest(true, 'Boolean')
+    typeInferenceTest(0, 'Unsigned Int')
+    typeInferenceTest(-1, 'Signed Int')
+    typeInferenceTest(0.1, 'Double')
+    typeInferenceTest('string', 'Character String')
+    typeInferenceTest(new Buffer([0, 1]), 'Octet String')
+    // TODO : infer types for date, time, object id are also possible
   })
 
   // round trip conversions wont make sure the endianness is correct

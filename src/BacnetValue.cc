@@ -47,22 +47,26 @@ NAN_MODULE_INIT(BacnetValue::Init) {
 NAN_METHOD(BacnetValue::FromJs) {
     if (info.IsConstructCall()) {
         // Invoked as constructor: `new BacnetValue(value [, tag])`
-        if (info[1]->IsUndefined()) {
-            Nan::ThrowError("Type inference unsupported, supply tag");
-            return;
-        }
         unsigned type_tag;
-        const char * tagError = applicationTagToC(info[1], &type_tag);
-        if (tagError) {
-            Nan::ThrowError(tagError);
+        if (info[1]->IsUndefined()) {
+            type_tag = inferBacnetType(info[0]);
+            if (type_tag == 255) {
+                Nan::ThrowError("Couldn't infer type tag for this js type");
+                return;
+            }
         } else {
-            BacnetValue* obj = new BacnetValue();
-            std::cout << "creating value " << extractString(info[0]->ToString()) << " with type " << +type_tag << std::endl;
-            obj->Wrap(info.This());
-            Nan::Set(info.This(), Nan::New("value").ToLocalChecked(), info[0]);
-            Nan::Set(info.This(), Nan::New("tag").ToLocalChecked(), info[1]);
-            info.GetReturnValue().Set(info.This());
+            const char * tagError = applicationTagToC(info[1], &type_tag);
+            if (tagError) {
+                Nan::ThrowError(tagError);
+                return;
+            }
         }
+        BacnetValue* obj = new BacnetValue();
+        std::cout << "creating value " << extractString(info[0]->ToString()) << " with type " << +type_tag << std::endl;
+        obj->Wrap(info.This());
+        Nan::Set(info.This(), Nan::New("value").ToLocalChecked(), info[0]);
+        Nan::Set(info.This(), Nan::New("tag").ToLocalChecked(), info[1]);
+        info.GetReturnValue().Set(info.This());
     } else {
         // Invoked as plain function `BacnetValue(...)`, turn into construct call.
         const int argc = 2;
@@ -131,17 +135,24 @@ Local<Value> BacnetValue::value() {
 
 BACNET_APPLICATION_TAG BacnetValue::tag() {
     Local<String> key = Nan::New("tag").ToLocalChecked();
-    Local<Value> value = Nan::Get(handle(), key).ToLocalChecked();
+    Local<Value> tagValue = Nan::Get(handle(), key).ToLocalChecked();
     unsigned type_tag;
-    const char * tagError = applicationTagToC(value, &type_tag);
-    if (tagError) {
-        std::cout << "Error reinterpreting tag " << tagError << " - was it changed?" << std::endl;
-        Nan::ThrowError(tagError);
-        return MAX_BACNET_APPLICATION_TAG;
+    if (tagValue->IsUndefined()) {
+        type_tag = inferBacnetType(value());
+        if (type_tag == 255) {
+            Nan::ThrowError("Couldn't infer type tag for this js type");
+            return MAX_BACNET_APPLICATION_TAG;
+        }
     } else {
-        std::cout << "Reinterpreting tag as " << type_tag << std::endl;
-        return static_cast<BACNET_APPLICATION_TAG>(type_tag);
+        const char * tagError = applicationTagToC(tagValue, &type_tag);
+        if (tagError) {
+            std::cout << "Error reinterpreting tag [" << tagError << "] - was it changed?" << std::endl;
+            Nan::ThrowError(tagError);
+            return MAX_BACNET_APPLICATION_TAG;
+        }
     }
+    std::cout << "Reinterpreting tag as " << type_tag << std::endl;
+    return static_cast<BACNET_APPLICATION_TAG>(type_tag);
 }
 
 BACNET_APPLICATION_DATA_VALUE * BacnetValue::bacnetValue() {

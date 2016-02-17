@@ -112,16 +112,17 @@ uint8_t inferBacnetType(Local<Value> jvalue) {
         return BACNET_APPLICATION_TAG_BOOLEAN;
     } else if (jvalue->IsString()) {
         return BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    } else if (node::Buffer::HasInstance(jvalue)) {
+        return BACNET_APPLICATION_TAG_OCTET_STRING;
+    } else if (jvalue->IsUint32()) {        // the 4 number domains have overlap, for this inference we're using unsigned int, signed int, double as the precedence
+        return BACNET_APPLICATION_TAG_UNSIGNED_INT;
     } else if (jvalue->IsInt32()) {
         return BACNET_APPLICATION_TAG_SIGNED_INT;
-    } else if (jvalue->IsUint32()) {
-        return BACNET_APPLICATION_TAG_UNSIGNED_INT;
     } else if (jvalue->IsNumber()) {
         return BACNET_APPLICATION_TAG_DOUBLE; // I don't think there's a reason to use float instead
     } else {
-        return 1; // Error : unsupported type (array, object, symbol)
+        return 255; // Error : unsupported type (array, object, symbol)
     }
-    return 0; // Success
 }
 
 int bacnetOctetStringToC(BACNET_OCTET_STRING * cvalue, Local<Value> jvalue) {
