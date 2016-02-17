@@ -189,7 +189,6 @@ NAN_METHOD(writeProperty) {
 
     bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
     if (addressed) {
-        std::cout << "writing property " << "some-device" << ", " << object_type << ", " << object_instance << ", " << object_property << ", " << array_index << std::endl;
         Local<Object> valueObject = Nan::To<Object>(info[5]).ToLocalChecked();
         BacnetValue * bacnetValue = BacnetValue::Unwrap<BacnetValue>(valueObject);
         BACNET_APPLICATION_DATA_VALUE object_value = {0};

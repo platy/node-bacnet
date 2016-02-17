@@ -24,6 +24,7 @@ describe('Write property', function () {
   // my writes dont currently support arrays - only single values
   describe('reading its own device object', function () {
     writeAndReadOwnDeviceObjectPropertyTest('object-name', 'New device name')
+    writeAndReadOwnDeviceObjectPropertyTest('apdu-timeout', 4000)
     function writeAndReadOwnDeviceObjectPropertyTest (propertyKey, value) {
       it('can write the \'' + propertyKey + '\' property', function (done) {
         device.once('read-property-ack', (property) => {

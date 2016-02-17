@@ -11,6 +11,7 @@
 #include "handlers.h"
 #include "errorhandlers.h"
 #include "tsm.h"
+#include "newclient.h"
 
 /* BBMD variables */
 static long bbmd_timetolive_seconds = 60000;
