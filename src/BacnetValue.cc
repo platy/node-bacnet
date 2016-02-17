@@ -62,7 +62,6 @@ NAN_METHOD(BacnetValue::FromJs) {
             }
         }
         BacnetValue* obj = new BacnetValue();
-        std::cout << "creating value " << extractString(info[0]->ToString()) << " with type " << +type_tag << std::endl;
         obj->Wrap(info.This());
         Nan::Set(info.This(), Nan::New("value").ToLocalChecked(), info[0]);
         Nan::Set(info.This(), Nan::New("tag").ToLocalChecked(), info[1]);
@@ -86,7 +85,6 @@ NAN_METHOD(BacnetValue::FromBytes) {
         Nan::ThrowError("Unsure if buffer is big enough to provide BACNET_APPLICATION_DATA_VALUE, avoiding risk of segfault");
         return;
     }
-    std::cout << "data " << extractString(info[0]->ToString());
     char * buf = node::Buffer::Data(info[0]);
     BACNET_APPLICATION_DATA_VALUE * value = reinterpret_cast<BACNET_APPLICATION_DATA_VALUE*>(buf);
 
@@ -94,7 +92,6 @@ NAN_METHOD(BacnetValue::FromBytes) {
 
 
     const char * tagName = bactext_application_tag_name(value->tag);
-    std::cout << "interpreted value as having " << extractString(jsValue->ToString()) << " with type " << tagName << std::endl;
     const int argc = 2;
     Local<Value> argv[argc] = { jsValue, Nan::New(tagName).ToLocalChecked() };
     Local<Function> cons = Nan::New(constructor());
@@ -103,11 +100,9 @@ NAN_METHOD(BacnetValue::FromBytes) {
 
 NAN_METHOD(BacnetValue::Bytes) {
     BacnetValue* obj = ObjectWrap::Unwrap<BacnetValue>(info.Holder());
-    BACNET_APPLICATION_DATA_VALUE * value = obj->bacnetValue();
-    if (value) {
-        Local<Value> buffer = Nan::Encode(value, sizeof(BACNET_APPLICATION_DATA_VALUE), Nan::Encoding::BUFFER); // TODO : depending upon the tag we can cut off the buffer at a shorter length
-        /// TODO : check handling and cleanup of bacnet Value
-
+    BACNET_APPLICATION_DATA_VALUE value = {0};
+    if (obj->bacnetValue(&value)) {
+        Local<Value> buffer = Nan::Encode(&value, sizeof(BACNET_APPLICATION_DATA_VALUE), Nan::Encoding::BUFFER); // TODO : depending upon the tag we can cut off the buffer at a shorter length
         info.GetReturnValue().Set(buffer);
     } else {
         Nan::ThrowError("Failed to convert js value to a bacnet value");
@@ -117,7 +112,6 @@ NAN_METHOD(BacnetValue::Bytes) {
 NAN_METHOD(BacnetValue::ToString) {
     BacnetValue* obj = ObjectWrap::Unwrap<BacnetValue>(info.Holder());
     Local<Value> value = obj->value();
-    std::cout << "doing tostring of " << extractString(value->ToString()) << std::endl;
     Local<Value> string = value->ToString();
 
     info.GetReturnValue().Set(string);
@@ -151,16 +145,14 @@ BACNET_APPLICATION_TAG BacnetValue::tag() {
             return MAX_BACNET_APPLICATION_TAG;
         }
     }
-    std::cout << "Reinterpreting tag as " << type_tag << std::endl;
     return static_cast<BACNET_APPLICATION_TAG>(type_tag);
 }
 
-BACNET_APPLICATION_DATA_VALUE * BacnetValue::bacnetValue() {
-    BACNET_APPLICATION_DATA_VALUE * cvalue = new BACNET_APPLICATION_DATA_VALUE;
+bool BacnetValue::bacnetValue(BACNET_APPLICATION_DATA_VALUE * cvalue) {
     int returnCode = bacnetAppValueToC(cvalue, value(), tag()); // TODO : use tag to make this more effective
     if (returnCode == 0) {
-        return cvalue;
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }

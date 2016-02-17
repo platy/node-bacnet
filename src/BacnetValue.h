@@ -12,7 +12,7 @@ using v8::Uint32;
 class BacnetValue: public Nan::ObjectWrap {
  public:
   static void Init(Local<Object> exports);
-  BACNET_APPLICATION_DATA_VALUE * bacnetValue();
+  bool bacnetValue(BACNET_APPLICATION_DATA_VALUE * value);
 
  private:
   explicit BacnetValue();

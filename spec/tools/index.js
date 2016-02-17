@@ -18,12 +18,17 @@ function readProperty (device, objectType, objectInstance, propertyId, arrayInde
   this.send({method: 'readProperty', args: Array.from(arguments)})
 }
 
+function writeProperty (device, objectType, objectInstance, propertyId, arrayIndex, value) {
+  this.send({method: 'writeProperty', args: Array.from(arguments)})
+}
+
 exports.deviceProcess = function deviceProcess (config) {
   const device = fork(path.join(__dirname, '/deviceFromString.js'))
   device.send(config || false) // initialises with no args
   device.exit = exit
   device.whois = whois
   device.readProperty = readProperty
+  device.writeProperty = writeProperty
   device.once('message', function () {
     device.emit('up')
     device.on('message', runningDeviceMessage)

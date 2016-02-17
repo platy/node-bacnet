@@ -10,9 +10,11 @@
 #include "init.h"
 #include "listenable.h"
 #include "client.h"
+#include "newclient.h"
 #include "bactext.h"
 #include "address.h"
 #include "conversion.h"
+#include "BacnetValue.h"
 
 
 NAN_METHOD(objectTypeToString) {
@@ -118,7 +120,24 @@ NAN_METHOD(whois) {
     info.GetReturnValue().Set(Nan::New(true));
 }
 
-// readProperty(deviceId, objectType, objectId)
+bool addressOrBoundDeviceIdToC(Local<Value> value, unsigned * max_apdu, BACNET_ADDRESS * dest) {
+    if (value->IsNumber()) {  // device id
+        int32_t device_id = value->ToInt32()->Value();
+
+        /* is the device bound? */
+        bool isBound = address_get_by_device(device_id, max_apdu, dest);
+        if (!isBound) {
+            Nan::ThrowError("device is not bound\n");
+            return false;
+        }
+    } else {   // device address
+        *dest = bacnetAddressToC(value);
+        *max_apdu = MAX_APDU; // without doing the whois we dont know the Max apdu for the device - so we will just hope it is the same as ours
+    }
+    return true;
+}
+
+// readProperty(deviceId, objectType, objectId, property [, arrayIndex])
 NAN_METHOD(readProperty) {
     int32_t object_type = info[1]->ToInt32()->Value();
     int32_t object_instance = info[2]->ToInt32()->Value();
@@ -130,19 +149,11 @@ NAN_METHOD(readProperty) {
         array_index = info[4]->ToUint32()->Value();
     }
 
-    if (info[0]->IsNumber()) {  // device id
-        int32_t device_id = info[0]->ToInt32()->Value();
-        std::cout << "reading property " << device_id << ", " << object_type << ", " << object_instance << ", " << object_property << ", " << array_index << std::endl;
-        invoke_id = Send_Read_Property_Request(
-            device_id,
-            (BACNET_OBJECT_TYPE)object_type,
-            object_instance,
-            (BACNET_PROPERTY_ID)object_property,
-            array_index);
-    } else {   // device address
-        BACNET_ADDRESS dest = bacnetAddressToC(info[0]);
-        uint16_t max_apdu = MAX_APDU; // without doing the whois we dont know the Max apdu for the device - so we will just hope it is the same as ours
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
 
+    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
+    if (addressed) {
         invoke_id = Send_Read_Property_Request_Address(
             &dest,
             max_apdu,
@@ -150,8 +161,53 @@ NAN_METHOD(readProperty) {
             object_instance,
             (BACNET_PROPERTY_ID)object_property,
             array_index);
+
+        info.GetReturnValue().Set(Nan::New(invoke_id));
     }
-    info.GetReturnValue().Set(Nan::New(invoke_id));
+}
+
+
+
+// writeProperty(deviceId, objectType, objectId, property, arrayIndex, value [, priority])
+NAN_METHOD(writeProperty) {
+    int32_t object_type = info[1]->ToInt32()->Value();
+    int32_t object_instance = info[2]->ToInt32()->Value();
+    int32_t object_property = info[3]->ToInt32()->Value();
+    uint32_t array_index = BACNET_ARRAY_ALL;
+    int invoke_id = 0;
+
+    if (info[4]->IsUint32()) {
+        array_index = info[4]->ToUint32()->Value();
+    }
+
+
+  // TODO : shuffle all the shit in s_wp around so that we can write by address
+  // TODO : create a h_wp_a.c to emit the responses
+
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+
+    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
+    if (addressed) {
+        std::cout << "writing property " << "some-device" << ", " << object_type << ", " << object_instance << ", " << object_property << ", " << array_index << std::endl;
+        Local<Object> valueObject = Nan::To<Object>(info[5]).ToLocalChecked();
+        BacnetValue * bacnetValue = BacnetValue::Unwrap<BacnetValue>(valueObject);
+        BACNET_APPLICATION_DATA_VALUE object_value = {0};
+        if (bacnetValue->bacnetValue(&object_value)) {
+            invoke_id = Send_Write_Property_Request_Address(
+                &dest,
+                max_apdu,
+                (BACNET_OBJECT_TYPE)object_type,
+                object_instance,
+                (BACNET_PROPERTY_ID)object_property,
+                &object_value,
+                BACNET_NO_PRIORITY,
+                array_index);
+            info.GetReturnValue().Set(Nan::New(invoke_id));
+        } else {
+            Nan::ThrowError("Some kind of error converting bacnet value for write property");
+        }
+    }
 }
 
 NAN_METHOD(listen) {

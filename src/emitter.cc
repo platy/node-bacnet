@@ -108,13 +108,54 @@ void emit_read_property_ack(uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data)
     uint8_t * application_data = new uint8_t[data->application_data_len];
     memcpy(application_data, data->application_data, data->application_data_len);
     RPAEvent * event = new RPAEvent();
-    event->invoke_id = invoke_id;
     event->request.data = event;
+    event->invoke_id = invoke_id;
     event->data = *data;
     event->data.application_data = application_data;
 
     // kick off the worker thread
     uv_queue_work(uv_default_loop(), &event->request, DoNothing, ReadPropertyAckEmitAsyncComplete);
+}
+
+struct AckEvent {
+    uint8_t invoke_id;
+    uv_work_t  request;
+    const char * type;
+};
+
+// called by libuv in event loop when async function completes
+static void AckEmitAsyncComplete(uv_work_t *req,int status) {
+    AckEvent *work = static_cast<AckEvent *>(req->data);
+
+    Nan::HandleScope scope;
+    Local<Object> localEventEmitter = Nan::New(eventEmitter);
+
+    // emit the read property ack in case you want all of those
+    Local<Value> emit_wp_a_args[] = {
+            Nan::New(work->type).ToLocalChecked(),
+            Nan::Undefined(),
+            Nan::New(work->invoke_id),
+        };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_wp_a_args);
+
+    // emit the general ack - it is used for firing callbacks of by invoke_id
+    Local<Value> emit_a_args[] = {
+            Nan::New("ack").ToLocalChecked(),
+            Nan::New(work->invoke_id),
+        };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
+
+    delete work;
+}
+
+void emit_generic_ack(const char * type, uint8_t invoke_id) {
+    AckEvent * event = new AckEvent();
+    event->request.data = event;
+    event->invoke_id = invoke_id;
+    event->type = type;
+
+    // kick off the worker thread
+    uv_queue_work(uv_default_loop(), &event->request, DoNothing, AckEmitAsyncComplete);
 }
 
 struct AbortEvent {

@@ -18,6 +18,8 @@ int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalu
 const char * objectTypeToC(Local<Value> type, unsigned * index);
 const char * applicationTagToC(Local<Value> type, unsigned * index);
 uint8_t inferBacnetType(Local<Value> jvalue);
+bool addressOrBoundDeviceIdToC(Local<Value> value, unsigned * max_apdu, BACNET_ADDRESS * dest);
+
 
 // Converts the BACNET_READ_PROPERTY_DATA to a js object
 //{
