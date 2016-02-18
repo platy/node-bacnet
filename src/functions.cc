@@ -139,22 +139,21 @@ bool addressOrBoundDeviceIdToC(Local<Value> value, unsigned * max_apdu, BACNET_A
 
 // readProperty(deviceId, objectType, objectId, property [, arrayIndex])
 NAN_METHOD(readProperty) {
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+
+    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
     int32_t object_type = info[1]->ToInt32()->Value();
     int32_t object_instance = info[2]->ToInt32()->Value();
     int32_t object_property = info[3]->ToInt32()->Value();
     uint32_t array_index = BACNET_ARRAY_ALL;
-    int invoke_id = 0;
 
     if (info[4]->IsUint32()) {
         array_index = info[4]->ToUint32()->Value();
     }
 
-    BACNET_ADDRESS dest = { 0 };
-    unsigned max_apdu = 0;
-
-    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
     if (addressed) {
-        invoke_id = Send_Read_Property_Request_Address(
+        int invoke_id = Send_Read_Property_Request_Address(
             &dest,
             max_apdu,
             (BACNET_OBJECT_TYPE)object_type,
@@ -163,37 +162,32 @@ NAN_METHOD(readProperty) {
             array_index);
 
         info.GetReturnValue().Set(Nan::New(invoke_id));
+    } else {
+        Nan::ThrowError("Unable to resolve address for read.");
     }
 }
 
-
-
 // writeProperty(deviceId, objectType, objectId, property, arrayIndex, value [, priority])
 NAN_METHOD(writeProperty) {
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+
+    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
     int32_t object_type = info[1]->ToInt32()->Value();
     int32_t object_instance = info[2]->ToInt32()->Value();
     int32_t object_property = info[3]->ToInt32()->Value();
     uint32_t array_index = BACNET_ARRAY_ALL;
-    int invoke_id = 0;
 
     if (info[4]->IsUint32()) {
         array_index = info[4]->ToUint32()->Value();
     }
 
-
-  // TODO : shuffle all the shit in s_wp around so that we can write by address
-  // TODO : create a h_wp_a.c to emit the responses
-
-    BACNET_ADDRESS dest = { 0 };
-    unsigned max_apdu = 0;
-
-    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
     if (addressed) {
         Local<Object> valueObject = Nan::To<Object>(info[5]).ToLocalChecked();
         BacnetValue * bacnetValue = BacnetValue::Unwrap<BacnetValue>(valueObject);
         BACNET_APPLICATION_DATA_VALUE object_value = {0};
         if (bacnetValue->bacnetValue(&object_value)) {
-            invoke_id = Send_Write_Property_Request_Address(
+            int invoke_id = Send_Write_Property_Request_Address(
                 &dest,
                 max_apdu,
                 (BACNET_OBJECT_TYPE)object_type,
@@ -206,6 +200,8 @@ NAN_METHOD(writeProperty) {
         } else {
             Nan::ThrowError("Some kind of error converting bacnet value for write property");
         }
+    } else {
+        Nan::ThrowError("Unable to resolve address for write.");
     }
 }
 

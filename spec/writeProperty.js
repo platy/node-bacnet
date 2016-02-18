@@ -22,7 +22,7 @@ describe('Write property', function () {
     device.once('up', done)
   })
   // my writes dont currently support arrays - only single values
-  describe('reading its own device object', function () {
+  describe('writing its own device object', function () {
     writeAndReadOwnDeviceObjectPropertyTest('object-name', 'New device name')
     writeAndReadOwnDeviceObjectPropertyTest('apdu-timeout', 4000)
     function writeAndReadOwnDeviceObjectPropertyTest (propertyKey, value) {
