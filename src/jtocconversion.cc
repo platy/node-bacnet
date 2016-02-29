@@ -120,8 +120,19 @@ uint8_t inferBacnetType(Local<Value> jvalue) {
         return BACNET_APPLICATION_TAG_SIGNED_INT;
     } else if (jvalue->IsNumber()) {
         return BACNET_APPLICATION_TAG_DOUBLE; // I don't think there's a reason to use float instead
+    } else if (jvalue->IsObject()) {
+        Local<Object> jobject = jvalue->ToObject();
+        if (Nan::Has(jobject, Nan::New("year").ToLocalChecked()).FromMaybe(false)) {
+            return BACNET_APPLICATION_TAG_DATE;
+        } else if (Nan::Has(jobject, Nan::New("hour").ToLocalChecked()).FromMaybe(false)) {
+            return BACNET_APPLICATION_TAG_TIME;
+        } else if (Nan::Has(jobject, Nan::New("instance").ToLocalChecked()).FromMaybe(false)) {
+            return BACNET_APPLICATION_TAG_OBJECT_ID;
+        } else {
+            return 255; // Error : unsupported object type (array, object, ...)
+        }
     } else {
-        return 255; // Error : unsupported type (array, object, symbol)
+        return 255; // Error : unsupported primitive (symbol, ...)
     }
 }
 

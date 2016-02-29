@@ -76,6 +76,9 @@ describe('Application value converters between BACnet and js domain', () => {
     typeInferenceTest(0.1, 'Double')
     typeInferenceTest('string', 'Character String')
     typeInferenceTest(new Buffer([0, 1]), 'Octet String')
+    typeInferenceTest({year: 2016, month: 2, day: 16, weekday: 'Wednesday'}, 'Date')
+    typeInferenceTest({hour: 1, min: 2, sec: 3, hundredths: 4}, 'Time')
+    typeInferenceTest({type: 'device', instance: 123456}, 'Object ID')
     // TODO : infer types for date, time, object id are also possible
   })
 
