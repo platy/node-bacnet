@@ -167,6 +167,43 @@ NAN_METHOD(readProperty) {
     }
 }
 
+// subscribeCOV(deviceId, objectType, objectId, property)
+NAN_METHOD(subscribeCOV) {
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+
+    bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
+    uint16_t object_type = info[1]->ToUint32()->Value();
+    uint32_t object_instance = info[2]->ToUint32()->Value();
+    BACNET_PROPERTY_ID object_property = (BACNET_PROPERTY_ID)info[3]->ToUint32()->Value();
+
+    BACNET_SUBSCRIBE_COV_DATA subscribe_cov_data = (BACNET_SUBSCRIBE_COV_DATA){
+        .subscriberProcessIdentifier = 0, // we might need to use this
+        .monitoredObjectIdentifier = {
+            .type = object_type,
+            .instance = object_instance
+        },
+        .cancellationRequest = false,
+        .issueConfirmedNotifications = false,
+        .lifetime = 0,
+        .monitoredProperty = object_property,
+        .covIncrementPresent = false, // I think this is the size of increment to cause a notification
+        .covIncrement = 0,
+        /// last 3 fields of struct are only for the confirmation
+    };
+
+    if (addressed) {
+        int invoke_id = Send_COV_Subscribe_Address(
+            &dest,
+            max_apdu,
+            & subscribe_cov_data);
+
+        info.GetReturnValue().Set(Nan::New(invoke_id));
+    } else {
+        Nan::ThrowError("Unable to resolve address for COV subscribe.");
+    }
+}
+
 // writeProperty(deviceId, objectType, objectId, property, arrayIndex, value [, priority])
 NAN_METHOD(writeProperty) {
     BACNET_ADDRESS dest = { 0 };

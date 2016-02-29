@@ -4,6 +4,7 @@
 #include <bacaddr.h>
 #include <bacapp.h>
 #include <apdu.h>
+#include <cov.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,11 @@ uint8_t Send_Write_Property_Request_Address(
 void handler_write_property_ack(
     BACNET_ADDRESS * src,
     uint8_t invoke_id);
+
+uint8_t Send_COV_Subscribe_Address(
+    BACNET_ADDRESS * dest,
+    uint16_t max_apdu,
+    BACNET_SUBSCRIBE_COV_DATA * cov_data);
 
 #ifdef __cplusplus
 }

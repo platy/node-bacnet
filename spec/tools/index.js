@@ -14,6 +14,10 @@ function whois (mac, objectMin, objectMax) {
   this.send({method: 'whois', args: Array.from(arguments)})
 }
 
+function subscribeCOV (device, objectType, objectInstance, propertyId) {
+  this.send({method: 'subscribeCOV', args: Array.from(arguments)})
+}
+
 function readProperty (device, objectType, objectInstance, propertyId, arrayIndex) {
   this.send({method: 'readProperty', args: Array.from(arguments)})
 }
@@ -28,6 +32,7 @@ exports.deviceProcess = function deviceProcess (config) {
   device.exit = exit
   device.whois = whois
   device.readProperty = readProperty
+  device.subscribeCOV = subscribeCOV
   device.writeProperty = writeProperty
   device.once('message', function () {
     device.emit('up')
