@@ -15,7 +15,7 @@ function objectIdToString (objectId) {
 
 r.on('iam', function (iam) {
   console.log('iam: ', iam)
-  r.readProperty(process.argv[2], process.argv[3], process.argv[4], process.argv[5], function (property) {
+  r.readProperty(Number(process.argv[2]), process.argv[3], process.argv[4], process.argv[5], false, function (err, property) {
     console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
     console.log(property.value)
   })

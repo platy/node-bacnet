@@ -10,6 +10,13 @@ bacnet.init = function init (config) {
   const bacnetInterface = new EventEmitter()
 
   const confirmedCallbacks = {}
+  function addCallback(invokeId, callback) {
+    if (callback && invokeId > 0) {
+      if (typeof callback !== 'function') throw new TypeError('non-function passed as callback argument')
+      confirmedCallbacks[invokeId] = callback
+    }
+    return invokeId
+  }
 
   bacnetAddon.initClient(bacnetInterface)
   if (config && config.device) bacnetAddon.initDevice()
@@ -19,18 +26,14 @@ bacnet.init = function init (config) {
   bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, callback) {
     if (!objectType) throw new TypeError('Expected an object type, got : ' + objectType)
     const invokeId = bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex)
-    if (callback && invokeId > 0) {
-      confirmedCallbacks[invokeId] = callback
-    }
-    return invokeId
+    if (invokeId === 0) throw new Error('Invoking BACnet read failed')
+    return addCallback(invokeId, callback)
   }
   bacnetInterface.writeProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, value, callback) {
     if (!objectType) throw new TypeError('Expected an object type, got : ' + objectType)
     const invokeId = bacnetAddon.writeProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex, new bacnet.BacnetValue(value))
-    if (callback && invokeId > 0) {
-      confirmedCallbacks[invokeId] = callback
-    }
-    return invokeId
+    if (invokeId === 0) throw new Error('Invoking BACnet read failed')
+    return addCallback(invokeId, callback)
   }
 
   bacnetInterface.on('ack', function (invokeId, response) {
