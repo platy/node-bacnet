@@ -36,3 +36,4 @@ Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_D
 Local<Value> bacnetApplicationValueToJ(Nan::HandleScope *scope, BACNET_APPLICATION_DATA_VALUE * value);
 Local<Object> bacnetAddressToJ(Nan::HandleScope *scope, BACNET_ADDRESS *src);
 Local<String> abortReasonToJ(Nan::HandleScope *scope, uint8_t abortReason);
+Local<String> errorCodesToJ(Nan::HandleScope *scope, BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code);

@@ -70,8 +70,8 @@ void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t 
 }
 
 struct RPAEvent {
-    uint8_t invoke_id;
     uv_work_t  request;
+    uint8_t invoke_id;
     BACNET_READ_PROPERTY_DATA data;
 };
 
@@ -118,8 +118,8 @@ void emit_read_property_ack(uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data)
 }
 
 struct AckEvent {
-    uint8_t invoke_id;
     uv_work_t  request;
+    uint8_t invoke_id;
     const char * type;
 };
 
@@ -159,10 +159,10 @@ void emit_generic_ack(const char * type, uint8_t invoke_id) {
 }
 
 struct AbortEvent {
+    uv_work_t  request;
     BACNET_ADDRESS src;
     uint8_t invoke_id;
     uint8_t abort_reason;
-    uv_work_t  request;
 };
 
 // called by libuv in event loop when async function completes
@@ -196,6 +196,49 @@ void emit_abort(
 
     // kick off the worker thread
     uv_queue_work(uv_default_loop(), &event->request, DoNothing, AbortEmitAsyncComplete);
+}
+
+
+struct ErrorEvent {
+    uv_work_t  request;
+    BACNET_ADDRESS src;
+    uint8_t invoke_id;
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
+};
+
+// called by libuv in event loop when async function completes
+static void ErrorEmitAsyncComplete(uv_work_t *req, int status) {
+    ErrorEvent *work = static_cast<ErrorEvent *>(req->data);
+
+    Nan::HandleScope scope;
+    Local<Object> localEventEmitter = Nan::New(eventEmitter);
+
+    // emit the abort - it is used for firing callbacks by invoke_id
+    Local<Value> emit_a_args[] = {
+            Nan::New("error-ack").ToLocalChecked(),
+            Nan::New(work->invoke_id),
+            errorCodesToJ(&scope, work->error_class, work->error_code)
+        };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
+
+    delete work;
+}
+
+void emit_error(
+       BACNET_ADDRESS * src,
+       uint8_t invoke_id,
+       BACNET_ERROR_CLASS error_class,
+       BACNET_ERROR_CODE error_code) {
+    ErrorEvent * event = new ErrorEvent();
+    event->invoke_id = invoke_id;
+    event->src = *src;
+    event->error_class = error_class;
+    event->error_code = error_code;
+    event->request.data = event;
+
+    // kick off the worker thread
+    uv_queue_work(uv_default_loop(), &event->request, DoNothing, ErrorEmitAsyncComplete);
 }
 
 void eventEmitterSet(Local<Object> localEventEmitter) {

@@ -295,6 +295,13 @@ Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_D
     return rpa;
 }
 
+Local<Object> errorCodesToJ(Nan::HandleScope *scope, BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code) {
+    Local<Object> error = Nan::New<Object>();
+    Nan::Set(error, Nan::New("error-class").ToLocalChecked(), Nan::New(bactext_error_class_name(error_class)).ToLocalChecked());
+    Nan::Set(error, Nan::New("error-code").ToLocalChecked(), Nan::New(bactext_error_code_name(error_code)).ToLocalChecked());
+    return error;
+}
+
 Local<String> abortReasonToJ(Nan::HandleScope *scope, uint8_t abortReason) {
     return Nan::New(bactext_abort_reason_name(abortReason)).ToLocalChecked();
 }

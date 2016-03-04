@@ -24,7 +24,7 @@ let timeout = setTimeout(function () {}, 5000)
 function readArrayPropertySequentially (deviceAddress, objectType, objectInstance, propertyKey, callback) {
   this.readProperty(deviceAddress, objectType, Number(objectInstance), propertyKey, 0, (err, propertyValue) => {
     if (err) {
-      return console.log('Failed to read object-list length for device', deviceAddress)
+      return console.log('Failed to read object-list length for device', deviceAddress, err)
     }
     console.log('array length = ', propertyValue.value)
     async.mapSeries(Array.from(range(1, propertyValue.value)), (index, indexRead) => r.readProperty(deviceAddress, objectType, objectInstance, propertyKey, index, (err, propertyValue) => {

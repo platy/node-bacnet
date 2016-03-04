@@ -53,6 +53,15 @@ bacnet.init = function init (config) {
     }
   })
 
+  bacnetInterface.on('error-ack', function (invokeId, error) {
+    console.log('error', invokeId, error)
+    const invocationCallback = confirmedCallbacks[invokeId]
+    if (invocationCallback) {
+      delete confirmedCallbacks[invokeId]
+      invocationCallback(error)
+    }
+  })
+
   return bacnetInterface
 }
 
