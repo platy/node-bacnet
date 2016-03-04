@@ -305,3 +305,7 @@ Local<Object> errorCodesToJ(Nan::HandleScope *scope, BACNET_ERROR_CLASS error_cl
 Local<String> abortReasonToJ(Nan::HandleScope *scope, uint8_t abortReason) {
     return Nan::New(bactext_abort_reason_name(abortReason)).ToLocalChecked();
 }
+
+Local<String> rejectReasonToJ(Nan::HandleScope *scope, uint8_t rejectReason) {
+    return Nan::New(bactext_abort_reason_name(rejectReason)).ToLocalChecked();
+}

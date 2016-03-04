@@ -174,10 +174,10 @@ static void AbortEmitAsyncComplete(uv_work_t *req, int status) {
 
     // emit the abort - it is used for firing callbacks by invoke_id
     Local<Value> emit_a_args[] = {
-            Nan::New("abort").ToLocalChecked(),
-            Nan::New(work->invoke_id),
-            abortReasonToJ(&scope, work->abort_reason)
-        };
+        Nan::New("abort").ToLocalChecked(),
+        Nan::New(work->invoke_id),
+        abortReasonToJ(&scope, work->abort_reason)
+    };
     Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
 
     delete work;
@@ -198,6 +198,45 @@ void emit_abort(
     uv_queue_work(uv_default_loop(), &event->request, DoNothing, AbortEmitAsyncComplete);
 }
 
+struct RejectEvent {
+    uv_work_t  request;
+    BACNET_ADDRESS src;
+    uint8_t invoke_id;
+    uint8_t reject_reason;
+};
+
+// called by libuv in event loop when async function completes
+static void RejectEmitAsyncComplete(uv_work_t *req, int status) {
+    RejectEvent *work = static_cast<RejectEvent *>(req->data);
+
+    Nan::HandleScope scope;
+    Local<Object> localEventEmitter = Nan::New(eventEmitter);
+
+    // emit the abort - it is used for firing callbacks by invoke_id
+    Local<Value> emit_a_args[] = {
+        Nan::New("reject").ToLocalChecked(),
+        Nan::New(work->invoke_id),
+        rejectReasonToJ(&scope, work->reject_reason)
+    };
+    Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
+
+    delete work;
+}
+
+void emit_reject(
+       BACNET_ADDRESS * src,
+       uint8_t invoke_id,
+       uint8_t reject_reason) {
+    RejectEvent * event = new RejectEvent();
+    event->invoke_id = invoke_id;
+    event->src = *src;
+    event->reject_reason = reject_reason;
+    event->request.data = event;
+
+    // kick off the worker thread
+    uv_queue_work(uv_default_loop(), &event->request, DoNothing, RejectEmitAsyncComplete);
+}
+
 
 struct ErrorEvent {
     uv_work_t  request;
@@ -216,10 +255,10 @@ static void ErrorEmitAsyncComplete(uv_work_t *req, int status) {
 
     // emit the abort - it is used for firing callbacks by invoke_id
     Local<Value> emit_a_args[] = {
-            Nan::New("error-ack").ToLocalChecked(),
-            Nan::New(work->invoke_id),
-            errorCodesToJ(&scope, work->error_class, work->error_code)
-        };
+        Nan::New("error-ack").ToLocalChecked(),
+        Nan::New(work->invoke_id),
+        errorCodesToJ(&scope, work->error_class, work->error_code)
+    };
     Nan::MakeCallback(localEventEmitter, "emit", 3, emit_a_args);
 
     delete work;
