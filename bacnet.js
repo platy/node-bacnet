@@ -10,7 +10,7 @@ bacnet.init = function init (config) {
   const bacnetInterface = new EventEmitter()
 
   const confirmedCallbacks = {}
-  function addCallback(invokeId, callback) {
+  function addCallback (invokeId, callback) {
     if (callback && invokeId > 0) {
       if (typeof callback !== 'function') throw new TypeError('non-function passed as callback argument')
       confirmedCallbacks[invokeId] = callback
