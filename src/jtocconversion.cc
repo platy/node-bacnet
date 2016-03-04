@@ -119,7 +119,7 @@ uint8_t inferBacnetType(Local<Value> jvalue) {
     } else if (jvalue->IsInt32()) {
         return BACNET_APPLICATION_TAG_SIGNED_INT;
     } else if (jvalue->IsNumber()) {
-        return BACNET_APPLICATION_TAG_DOUBLE; // I don't think there's a reason to use float instead
+        return BACNET_APPLICATION_TAG_REAL; // With my test device a double was an invalid type - it seems that real is more common
     } else if (jvalue->IsObject()) {
         Local<Object> jobject = jvalue->ToObject();
         if (Nan::Has(jobject, Nan::New("year").ToLocalChecked()).FromMaybe(false)) {

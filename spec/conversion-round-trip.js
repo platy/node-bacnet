@@ -73,7 +73,7 @@ describe('Application value converters between BACnet and js domain', () => {
     typeInferenceTest(true, 'Boolean')
     typeInferenceTest(0, 'Unsigned Int')
     typeInferenceTest(-1, 'Signed Int')
-    typeInferenceTest(0.1, 'Double')
+    typeInferenceTest(0.25, 'Real')
     typeInferenceTest('string', 'Character String')
     typeInferenceTest(new Buffer([0, 1]), 'Octet String')
     typeInferenceTest({year: 2016, month: 2, day: 16, weekday: 'Wednesday'}, 'Date')
