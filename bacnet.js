@@ -31,7 +31,10 @@ bacnet.init = function init (config) {
   }
   bacnetInterface.writeProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, value, callback) {
     if (!objectType) throw new TypeError('Expected an object type, got : ' + objectType)
-    const invokeId = bacnetAddon.writeProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex, new bacnet.BacnetValue(value))
+    if (value.constructor !== bacnet.BacnetValue) {
+      value = new bacnet.BacnetValue(value)
+    }
+    const invokeId = bacnetAddon.writeProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex, value)
     if (invokeId === 0) throw new Error('Invoking BACnet read failed')
     return addCallback(invokeId, callback)
   }
