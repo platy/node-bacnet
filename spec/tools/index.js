@@ -29,9 +29,13 @@ exports.deviceProcess = function deviceProcess (config) {
   device.whois = whois
   device.readProperty = readProperty
   device.writeProperty = writeProperty
-  device.once('message', function () {
-    device.emit('up')
-    device.on('message', runningDeviceMessage)
+  device.once('message', function (message) {
+    if (message) { // init error
+      runningDeviceMessage.bind(device)(message)
+    } else {
+      device.emit('up')
+      device.on('message', runningDeviceMessage)
+    }
   })
   return device
 }

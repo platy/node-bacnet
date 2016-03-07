@@ -37,7 +37,11 @@ NAN_METHOD(InitInstance) {
     std::string bbmd_address = getStringOrEmpty(configJs, "bbmd_address");
 
     struct BACNET_CONFIGURATION config = {device_instance_id, ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
-    init_bacnet(&config);
+    const char * errorMessage = init_bacnet(&config);
+    if (errorMessage) {
+        Nan::ThrowError(errorMessage);
+        return;
+    }
 
     Local<Object> target = New<Object>();
     Nan::Set(target, New("whois").ToLocalChecked(),

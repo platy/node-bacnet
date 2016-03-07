@@ -8,6 +8,7 @@
     "rebuild": "node-gyp rebuild && npm test",
     "build": "node-gyp build && npm test",
     "test": "mocha spec",
+    "testOnly": "mocha",
     "style": "standard"
   },
   "devDependencies": {

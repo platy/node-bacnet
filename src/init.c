@@ -98,7 +98,7 @@ int dlenv_register_as_foreign_device(struct BACNET_CONFIGURATION* config) {
  * or else to defaults.
  * @ingroup DataLink
  */
-void dlenv_init(struct BACNET_CONFIGURATION *config) {
+const char * init_bacnet(struct BACNET_CONFIGURATION *config) {
     if (config->device_instance_id) {
         Device_Set_Object_Instance_Number(config->device_instance_id);
     }
@@ -123,21 +123,17 @@ void dlenv_init(struct BACNET_CONFIGURATION *config) {
     }
     if (*config->iface) {
         if (!datalink_init(config->iface)) {
-            exit(1);
+            return "Failed to initialize data link";
         }
     } else {
         if (!datalink_init(0)) {
-            exit(1);
+            return "Failed to initialize data link";
         }
     }
     if (config->invoke_id) {
         tsm_invokeID_set(config->invoke_id);
     }
     dlenv_register_as_foreign_device(config);
-}
-
-
-void init_bacnet(struct BACNET_CONFIGURATION *config) {
-  dlenv_init(config);
-  atexit(datalink_cleanup);
+    atexit(datalink_cleanup);
+    return 0;
 }
