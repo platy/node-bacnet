@@ -4,8 +4,8 @@ const async = require('async')
 const bacnet = require('../bacnet.js')
 const r = bacnet.init({
   datalink: {
-    iface: process.argv[2],
-    ip_port: 0xBAC0
+    iface: process.env.BACNET_INTERFACE,
+    ip_port: process.env.BACNET_PORT || 0xBAC0
   },
   device: false
 })
@@ -78,4 +78,4 @@ r.on('iam', function (iam) {
   }))
 })
 
-r.whois(process.argv[3])
+r.whois(process.argv[2])

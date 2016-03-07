@@ -2,11 +2,24 @@ const bacnet = require('../bacnet.js')
 const async = require('async')
 const r = bacnet.init({
   datalink: {
-    iface: 'bridge100',
-    ip_port: 0xBAC0
+    iface: process.env.BACNET_INTERFACE,
+    ip_port: process.env.BACNET_PORT || 0xBAC0
   },
   device: false
 })
+
+function withAddressOrId (addressOrId, callback) {
+  if (addressOrId.match(/^\d+$/)) { // integer - should be a device Id so we have to do a whois
+    console.log('doing whois for ' + addressOrId)
+    r.whois(Number(addressOrId))
+    r.on('iam', function (iam) {
+      console.log('iam: ', iam)
+      callback(Number(addressOrId))
+    })
+  } else { // something else - should be an address so we dont need to do a whois
+    callback(addressOrId)
+  }
+}
 
 function objectIdToString (objectId) {
   return bacnet.objectTypeToString(objectId.type) + '/' + objectId.instance
@@ -41,11 +54,9 @@ function receiveObjectList (err, property) {
   })
 }
 
-r.on('iam', function (iam) {
-  console.log('iam: ', iam)
-  console.log('read-property invoke', r.readProperty(Number(process.argv[2]), 'device', process.argv[2], 'object-list', false, receiveObjectList))
+withAddressOrId(process.argv[2], function (addressOrId) {
+  console.log('read-property invoke',
+    r.readProperty(addressOrId, 'device', process.argv[2], 'object-list', false, receiveObjectList))
 })
-
-r.whois(Number(process.argv[2]))
 
 setTimeout(function () {}, 4000)
