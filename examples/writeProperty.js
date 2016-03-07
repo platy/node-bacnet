@@ -7,7 +7,7 @@ const r = bacnet.init({
   device: false
 })
 
-console.log('reading property', bacnet.propertyKeyToString(process.argv[5]))
+console.log('writing property', bacnet.propertyKeyToString(process.argv[5]))
 
 r.on('iam', function (iam) {
   console.log('iam: ', iam)

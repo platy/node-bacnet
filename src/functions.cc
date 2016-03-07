@@ -139,7 +139,7 @@ bool addressOrBoundDeviceIdToC(Local<Value> value, unsigned * max_apdu, BACNET_A
 
 // readProperty(deviceId, objectType, objectId, property [, arrayIndex])
 NAN_METHOD(readProperty) {
-    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS dest = {};
     unsigned max_apdu = 0;
 
     bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
@@ -169,7 +169,7 @@ NAN_METHOD(readProperty) {
 
 // writeProperty(deviceId, objectType, objectId, property, arrayIndex, value [, priority])
 NAN_METHOD(writeProperty) {
-    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS dest = {};
     unsigned max_apdu = 0;
 
     bool addressed = addressOrBoundDeviceIdToC(info[0], &max_apdu, &dest);
@@ -185,7 +185,7 @@ NAN_METHOD(writeProperty) {
     if (addressed) {
         Local<Object> valueObject = Nan::To<Object>(info[5]).ToLocalChecked();
         BacnetValue * bacnetValue = BacnetValue::Unwrap<BacnetValue>(valueObject);
-        BACNET_APPLICATION_DATA_VALUE object_value = {0};
+        BACNET_APPLICATION_DATA_VALUE object_value = {};
         if (bacnetValue->bacnetValue(&object_value)) {
             int invoke_id = Send_Write_Property_Request_Address(
                 &dest,

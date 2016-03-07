@@ -6,13 +6,11 @@
 
 static bool Error_Detected = false;
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {};
 
 
 void runListen(void *arg) {
-  BACNET_ADDRESS src = {
-      0
-  };  /* address where message came from */
+  BACNET_ADDRESS src = {};  /* address where message came from */
   uint16_t pdu_len = 0;
   unsigned timeout = 100;     /* milliseconds */
   time_t total_seconds = 0;

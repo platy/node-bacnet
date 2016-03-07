@@ -43,13 +43,12 @@ std::string getStringOrEmpty(Local<Object> target, std::string key) {
 // Non-strings create the broadcast address
 // TODO : accept objects which specify the additional address properties - for which partial logic exists below
 BACNET_ADDRESS bacnetAddressToC(Local<Value> addressValue) {
-    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS dest = {};
 
     if (addressValue->IsString()) { // address object parameter
-        BACNET_MAC_ADDRESS mac = { 0 };
-        BACNET_MAC_ADDRESS adr = { 0 };
+        BACNET_MAC_ADDRESS mac = {};
+        BACNET_MAC_ADDRESS adr = {};
         long dnet = -1;
-        char* dest_mac = 0;
 
         Nan::Utf8String address(addressValue.As<v8::String>());
         address_mac_from_ascii(&mac, *address);
@@ -213,6 +212,9 @@ int bacnetObjectHandleToC(BACNET_OBJECT_ID * cvalue, Local<Value> jvalue) {
 // This shouldn't be called for arrays as we dont know whether the return value is an array
 // TODO check types etc
 int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalue, BACNET_APPLICATION_TAG tag) {
+    cvalue->context_specific = false;
+    cvalue->context_tag = 0;
+    cvalue->next = 0;
     cvalue->tag = tag;
     switch (tag) {
     case BACNET_APPLICATION_TAG_NULL:
@@ -247,9 +249,10 @@ int bacnetAppValueToC(BACNET_APPLICATION_DATA_VALUE * cvalue, Local<Value> jvalu
         return bacnetTimeToC(&cvalue->type.Time, jvalue);
     case BACNET_APPLICATION_TAG_OBJECT_ID:
         return bacnetObjectHandleToC(&cvalue->type.Object_Id, jvalue);
+    default:
+        std::cout << "ERROR: value tag (" << +cvalue->tag << ") not converted to js '" << bactext_application_tag_name(cvalue->tag) << "'" << std::endl;
+        return 1;
     }
-    std::cout << "ERROR: value tag (" << +cvalue->tag << ") not converted to js '" << bactext_application_tag_name(cvalue->tag) << "'" << std::endl;
-    return 1;
 }
 
 // converts a value representing a bacnet object type to its enum value

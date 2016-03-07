@@ -100,7 +100,7 @@ NAN_METHOD(BacnetValue::FromBytes) {
 
 NAN_METHOD(BacnetValue::Bytes) {
     BacnetValue* obj = ObjectWrap::Unwrap<BacnetValue>(info.Holder());
-    BACNET_APPLICATION_DATA_VALUE value = {0};
+    BACNET_APPLICATION_DATA_VALUE value = {};
     if (obj->bacnetValue(&value)) {
         Local<Value> buffer = Nan::Encode(&value, sizeof(BACNET_APPLICATION_DATA_VALUE), Nan::Encoding::BUFFER); // TODO : depending upon the tag we can cut off the buffer at a shorter length
         info.GetReturnValue().Set(buffer);
