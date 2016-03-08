@@ -175,7 +175,7 @@ void bip_set_interface(
  *         else False if the socket functions fail.
  */
 bool bip_init(
-    const char *ifname)
+    char *ifname)
 {
     int status = 0;     /* return from socket lib calls */
     struct sockaddr_in sin;
@@ -184,6 +184,7 @@ bool bip_init(
 
     if (ifname) {
         bip_set_interface(ifname);
+        printf("interface %s", ifname);
     } else {
         bip_set_interface("en0");
     }
