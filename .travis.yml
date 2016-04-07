@@ -1,4 +1,6 @@
 language: cpp
+sudo: required
+dist: trusty
 env:
   - NODE_VERSION="node"
   - NODE_VERSION="4"
