@@ -79,15 +79,3 @@ withAddressOrId(deviceAddress, function (deviceAddressOrId) {
     })
   })
 })
-
-// on the OB network :
-// root@dev-open-berlin1:/node-bacnet-prototype# node examples/readObjectListIndividually.js 192.168.1.2 12
-// Initialise client handlers
-// array length =  null
-// Read object list for 192.168.1.2
-// objects for device 192.168.1.2 []
-// root@dev-open-berlin1:/node-bacnet-prototype# node examples/readObjectListIndividually.js 192.168.1.1 11
-// Initialise client handlers
-// array length =  null
-// Read object list for 192.168.1.1
-// objects for device 192.168.1.1 []
