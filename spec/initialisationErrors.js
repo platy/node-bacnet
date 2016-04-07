@@ -7,8 +7,8 @@ const tools = require('./tools')
 const iface = tools.getSuitableBroadcastInterface()
 
 describe('Initialisation', function () {
-  var device
-  after('Exit the device2 fork', function (done) {
+  var device, socket
+  after('Exit the device fork', function (done) {
     if (device) {
       device.removeAllListeners()
       device.once('exit', done)
@@ -17,8 +17,11 @@ describe('Initialisation', function () {
       done()
     }
   })
+  after('Release the socket', function (done) {
+    socket.close(done)
+  })
   before(function (done) {
-    var socket = require('dgram').createSocket('udp4').bind(47808)
+    socket = require('dgram').createSocket('udp4').bind(47808)
     socket.once('listening', done)
   })
   // disabled as currently the error doesn't work on linux - annoying
