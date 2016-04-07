@@ -1,6 +1,7 @@
 #include <iostream>
 #include <v8.h>
 #include <nan.h>
+#include "BacnetValue.h"
 #include "functions.h"
 #include "init.h"
 #include "conversion.h"
@@ -36,13 +37,19 @@ NAN_METHOD(InitInstance) {
     std::string bbmd_address = getStringOrEmpty(configJs, "bbmd_address");
 
     struct BACNET_CONFIGURATION config = {device_instance_id, ip_port, apdu_timeout, apdu_retries, iface.c_str(), invoke_id, bbmd_port, bbmd_ttl, bbmd_address.c_str()};
-    init_bacnet(&config);
+    const char * errorMessage = init_bacnet(&config);
+    if (errorMessage) {
+        Nan::ThrowError(errorMessage);
+        return;
+    }
 
     Local<Object> target = New<Object>();
     Nan::Set(target, New("whois").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(whois)).ToLocalChecked());
     Nan::Set(target, New("readProperty").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(readProperty)).ToLocalChecked());
+    Nan::Set(target, New("writeProperty").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(writeProperty)).ToLocalChecked());
     Nan::Set(target, New("listen").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(listen)).ToLocalChecked());
     Nan::Set(target, New("initClient").ToLocalChecked(),
@@ -64,6 +71,8 @@ NAN_MODULE_INIT(InitModule) {
       Nan::GetFunction(New<FunctionTemplate>(propertyKeyToString)).ToLocalChecked());
     Nan::Set(target, New("propertyKeyToNumber").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(propertyKeyToNumber)).ToLocalChecked());
+
+    BacnetValue::Init(target);
 }
 
 NODE_MODULE(binding, InitModule)

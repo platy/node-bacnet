@@ -10,6 +10,13 @@ bacnet.init = function init (config) {
   const bacnetInterface = new EventEmitter()
 
   const confirmedCallbacks = {}
+  function addCallback (invokeId, callback) {
+    if (callback && invokeId > 0) {
+      if (typeof callback !== 'function') throw new TypeError('non-function passed as callback argument')
+      confirmedCallbacks[invokeId] = callback
+    }
+    return invokeId
+  }
 
   bacnetAddon.initClient(bacnetInterface)
   if (config && config.device) bacnetAddon.initDevice()
@@ -19,15 +26,23 @@ bacnet.init = function init (config) {
   bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, callback) {
     if (!objectType) throw new TypeError('Expected an object type, got : ' + objectType)
     const invokeId = bacnetAddon.readProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex)
-    if (callback && invokeId > 0) {
-      confirmedCallbacks[invokeId] = callback
+    if (invokeId === 0) throw new Error('Invoking BACnet read failed')
+    return addCallback(invokeId, callback)
+  }
+  bacnetInterface.writeProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, value, callback) {
+    if (!objectType) throw new TypeError('Expected an object type, got : ' + objectType)
+    if (value.constructor !== bacnet.BacnetValue) {
+      value = new bacnet.BacnetValue(value)
     }
-    return invokeId
+    const invokeId = bacnetAddon.writeProperty(deviceInstance, bacnet.objectTypeToNumber(objectType), objectInstance, bacnet.propertyKeyToNumber(property), arrayIndex, value)
+    if (invokeId === 0) throw new Error('Invoking BACnet read failed')
+    return addCallback(invokeId, callback)
   }
 
   bacnetInterface.on('ack', function (invokeId, response) {
     const invocationCallback = confirmedCallbacks[invokeId]
     if (invocationCallback) {
+      delete confirmedCallbacks[invokeId]
       invocationCallback(null, response)
     }
   })
@@ -36,7 +51,26 @@ bacnet.init = function init (config) {
     console.log('abort', invokeId)
     const invocationCallback = confirmedCallbacks[invokeId]
     if (invocationCallback) {
+      delete confirmedCallbacks[invokeId]
       invocationCallback(new Error(reason))
+    }
+  })
+
+  bacnetInterface.on('reject', function (invokeId, reason) {
+    console.log('abort', invokeId)
+    const invocationCallback = confirmedCallbacks[invokeId]
+    if (invocationCallback) {
+      delete confirmedCallbacks[invokeId]
+      invocationCallback(new Error(reason))
+    }
+  })
+
+  bacnetInterface.on('error-ack', function (invokeId, error) {
+    console.log('error', invokeId, error)
+    const invocationCallback = confirmedCallbacks[invokeId]
+    if (invocationCallback) {
+      delete confirmedCallbacks[invokeId]
+      invocationCallback(error)
     }
   })
 

@@ -20,17 +20,16 @@ function withAddressOrId (addressOrId, callback) {
   }
 }
 
-function objectIdToString (objectId) {
-  return bacnet.objectTypeToString(objectId.type) + '/' + objectId.instance
+var value = JSON.parse(process.argv[6])
+if (process.argv.length > 6) {
+  value = new bacnet.BacnetValue(value, process.argv[7])
 }
-
-console.log('reading property', bacnet.propertyKeyToString(process.argv[5]))
+console.log('writing property', bacnet.propertyKeyToString(process.argv[5]), 'value', value)
 
 withAddressOrId(process.argv[2], function (addressOrId) {
-  r.readProperty(addressOrId, process.argv[3], process.argv[4], process.argv[5], false, function (err, property) {
-    if (err) throw console.log('Error', err)
-    console.log('Received property /', objectIdToString(property.object), '/', bacnet.propertyKeyToString(property.property))
-    console.log(property.value)
+  r.writeProperty(addressOrId, process.argv[3], process.argv[4], process.argv[5], false, value, function (err) {
+    if (err) console.log('error', err)
+    else console.log('success')
   })
 })
 

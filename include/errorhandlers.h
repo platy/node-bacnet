@@ -15,5 +15,5 @@ void handler_reject(
 void handler_error(
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server);
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code);
