@@ -48,9 +48,12 @@ Local<Value> octetStringToBuffer(Nan::HandleScope *scope, BACNET_OCTET_STRING oc
     return Nan::Encode(octet_string.value, octet_string.length, Nan::Encoding::BUFFER);
 }
 
-Local<Value> bitStringToBuffer(Nan::HandleScope *scope, BACNET_BIT_STRING bit_string) {
+// bit string is converted to a biffer with an extra field 'bitLength' specifying the number of bits used
+Local<Object> bitStringToBuffer(Nan::HandleScope *scope, BACNET_BIT_STRING bit_string) {
     int byte_length = (bit_string.bits_used + 8 - 1) / 8;
-    return Nan::Encode(bit_string.value, byte_length, Nan::Encoding::BUFFER);
+    Local<Object> buffer = Nan::To<Object>(Nan::Encode(bit_string.value, byte_length, Nan::Encoding::BUFFER)).ToLocalChecked();
+    Nan::Set(buffer, Nan::New("bitLength").ToLocalChecked(), Nan::New(bit_string.bits_used));
+    return buffer;
 }
 
 // TODO: what does it involve to support this?
@@ -67,12 +70,12 @@ Local<String> characterStringToBuffer(Nan::HandleScope *scope, BACNET_CHARACTER_
     case CHARACTER_UCS2:
         return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::UCS2).As<String>();
     case CHARACTER_ISO8859:
-        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::ASCII).As<String>();
+        return Nan::Encode(character_string.value, character_string.length, Nan::Encoding::BINARY).As<String>();
     }
     return Nan::New("Unsupported string encoding - Unknown").ToLocalChecked();
 }
 
-Local<String> bacnetEnumToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * object_value) {
+Local<String> bacnetPropertyEnumToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * object_value) {
     char str[20];
     int str_len = 20;
     char *char_str;
@@ -193,8 +196,7 @@ Local<Object> bacnetTimeToJ(Nan::HandleScope *scope, BACNET_TIME * time) {
 }
 
 // Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
-Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
-    BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
+Local<Value> bacnetApplicationValueToJ(Nan::HandleScope *scope, BACNET_APPLICATION_DATA_VALUE * value) {
     switch (value->tag) {
     case BACNET_APPLICATION_TAG_NULL:
         return Nan::Null();
@@ -215,7 +217,7 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     case BACNET_APPLICATION_TAG_BIT_STRING:
         return bitStringToBuffer(scope, value->type.Bit_String);
     case BACNET_APPLICATION_TAG_ENUMERATED:
-        return bacnetEnumToJ(scope, propertyValue);
+        return Nan::New(value->type.Enumerated); // without the context of the property id the enumeration value is just a number
     case BACNET_APPLICATION_TAG_DATE:
         return bacnetDateToJ(scope, &value->type.Date);
     case BACNET_APPLICATION_TAG_TIME:
@@ -225,6 +227,17 @@ Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT
     }
     std::cout << "ERROR: value tag (" << +value->tag << ") not converted to js '" << bactext_application_tag_name(value->tag) << "'" << std::endl;
     return Nan::Null();
+}
+
+// Converts BACNET_OBJECT_PROPERTY_VALUE to a js value
+Local<Value> bacnetObjectPropertyValueToJ(Nan::HandleScope *scope, BACNET_OBJECT_PROPERTY_VALUE * propertyValue) {
+    BACNET_APPLICATION_DATA_VALUE *value = propertyValue->value;
+    switch (value->tag) {
+    case BACNET_APPLICATION_TAG_ENUMERATED:
+        return bacnetPropertyEnumToJ(scope, propertyValue);
+    default:
+        return bacnetApplicationValueToJ(scope, value);
+    }
 }
 
 // Reads a bacnet application data value from the raw data and returns as a js value
@@ -282,6 +295,17 @@ Local<Object> readPropertyAckToJ(Nan::HandleScope *scope, BACNET_READ_PROPERTY_D
     return rpa;
 }
 
+Local<Object> errorCodesToJ(Nan::HandleScope *scope, BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code) {
+    Local<Object> error = Nan::New<Object>();
+    Nan::Set(error, Nan::New("error-class").ToLocalChecked(), Nan::New(bactext_error_class_name(error_class)).ToLocalChecked());
+    Nan::Set(error, Nan::New("error-code").ToLocalChecked(), Nan::New(bactext_error_code_name(error_code)).ToLocalChecked());
+    return error;
+}
+
 Local<String> abortReasonToJ(Nan::HandleScope *scope, uint8_t abortReason) {
     return Nan::New(bactext_abort_reason_name(abortReason)).ToLocalChecked();
+}
+
+Local<String> rejectReasonToJ(Nan::HandleScope *scope, uint8_t rejectReason) {
+    return Nan::New(bactext_abort_reason_name(rejectReason)).ToLocalChecked();
 }

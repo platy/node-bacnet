@@ -68,7 +68,9 @@ long bip_getaddrbyname(
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return 0;
 
-    return *(long *) host_ent->h_addr;
+    long address = *(long *) host_ent->h_addr;
+    free(host_ent);
+    return address;
 }
 
 /** Gets the local IP address and local broadcast address from the system,
@@ -90,6 +92,7 @@ static int get_local_address(
     struct ifaddrs *ifaddrs_ptr;
     int status;
     status = getifaddrs(&ifaddrs_ptr);
+    const struct ifaddrs *ifaddrs_start_ptr = ifaddrs_ptr;
     if (status == -1) {
         fprintf(stderr, "Error in 'getifaddrs': %d (%s)\n", errno,
             strerror(errno));
@@ -114,7 +117,7 @@ static int get_local_address(
         }
         ifaddrs_ptr = ifaddrs_ptr->ifa_next;
     }
-    freeifaddrs(ifaddrs_ptr);
+    freeifaddrs(ifaddrs_start_ptr);
     return rv;
 }
 
@@ -175,7 +178,7 @@ void bip_set_interface(
  *         else False if the socket functions fail.
  */
 bool bip_init(
-    const char *ifname)
+    char *ifname)
 {
     int status = 0;     /* return from socket lib calls */
     struct sockaddr_in sin;
@@ -184,6 +187,7 @@ bool bip_init(
 
     if (ifname) {
         bip_set_interface(ifname);
+        printf("interface %s", ifname);
     } else {
         bip_set_interface("en0");
     }

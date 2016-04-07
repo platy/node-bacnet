@@ -44,7 +44,7 @@ struct BACNET_CONFIGURATION {
     const char* bbmd_address;
 };
 
-void init_bacnet(struct BACNET_CONFIGURATION *config);
+const char * init_bacnet(struct BACNET_CONFIGURATION *config);
 void init_service_handlers();
 void init_device_service_handlers();
 

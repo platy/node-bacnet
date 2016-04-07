@@ -47,7 +47,7 @@ extern "C" {
     /* on Linux, ifname is eth0, ath0, arc0, and others.
        on Windows, ifname is the dotted ip address of the interface */
     bool bip_init(
-        const char *ifname);
+        char *ifname);
     void bip_set_interface(
         char *ifname);
     void bip_cleanup(
