@@ -1,5 +1,6 @@
 {
   "name": "bacnet",
+  "description": "(early stages) node wrapper for the bacnet-stack c library",
   "version": "0.0.1",
   "main": "bacnet.js",
   "scripts": {
