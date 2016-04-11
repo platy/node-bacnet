@@ -1,7 +1,7 @@
 {
   "name": "bacnet",
   "description": "(early stages) node wrapper for the bacnet-stack c library",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "bacnet.js",
   "scripts": {
     "configure": "node-gyp configure && npm run build",
@@ -11,7 +11,8 @@
     "build-debug": "node-gyp --debug build",
     "test": "mocha spec",
     "testOnly": "mocha",
-    "style": "standard"
+    "style": "standard",
+    "prepublish": "standard && npm rebuild && npm test"
   },
   "devDependencies": {
     "async": "^1.5.2",

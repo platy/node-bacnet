@@ -1,6 +1,6 @@
 {
   "name": "bacnet",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": {
     "acorn": {
       "version": "3.0.4",
