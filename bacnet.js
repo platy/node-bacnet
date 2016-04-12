@@ -39,39 +39,36 @@ bacnet.init = function init (config) {
     return addCallback(invokeId, callback)
   }
 
-  bacnetInterface.on('ack', function (invokeId, response) {
-    const invocationCallback = confirmedCallbacks[invokeId]
+  function executeCallback () {
+    const invocationCallback = confirmedCallbacks[ this ]
     if (invocationCallback) {
-      delete confirmedCallbacks[invokeId]
-      invocationCallback(null, response)
+      delete confirmedCallbacks[ this ]
+      try {
+        invocationCallback.apply(null, null, arguments)
+      } catch (err) {
+        console.log('Error in callback', err.stack)
+        bacnetInterface.emit('error', err)
+      }
     }
+  }
+
+  bacnetInterface.on('ack', function (invokeId, response) {
+    executeCallback.call(invokeId, response)
   })
 
   bacnetInterface.on('abort', function (invokeId, reason) {
     console.log('abort', invokeId)
-    const invocationCallback = confirmedCallbacks[invokeId]
-    if (invocationCallback) {
-      delete confirmedCallbacks[invokeId]
-      invocationCallback(new Error(reason))
-    }
+    executeCallback(invokeId, new Error(reason))
   })
 
   bacnetInterface.on('reject', function (invokeId, reason) {
     console.log('abort', invokeId)
-    const invocationCallback = confirmedCallbacks[invokeId]
-    if (invocationCallback) {
-      delete confirmedCallbacks[invokeId]
-      invocationCallback(new Error(reason))
-    }
+    executeCallback(invokeId, new Error(reason))
   })
 
   bacnetInterface.on('error-ack', function (invokeId, error) {
     console.log('error', invokeId, error)
-    const invocationCallback = confirmedCallbacks[invokeId]
-    if (invocationCallback) {
-      delete confirmedCallbacks[invokeId]
-      invocationCallback(error)
-    }
+    executeCallback(invokeId, error)
   })
 
   return bacnetInterface

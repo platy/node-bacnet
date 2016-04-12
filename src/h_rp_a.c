@@ -128,7 +128,7 @@ void handler_read_property_ack(
     (void) service_data;        /* we could use these... */
     len = rp_ack_decode_service_request(service_request, service_len, &data);
 #if TRACE_ENABLED
-    fprintf(stderr, "Received Read-Property Ack! %d\n", service_data->invoke_id);
+    fprintf(stderr, "Received Read-Property Ack! %d with length %d\n", service_data->invoke_id, len);
 #endif
     if (len > 0) {
         emit_read_property_ack(service_data->invoke_id, &data);
