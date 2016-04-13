@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <bacapp.h>
@@ -57,7 +58,9 @@ NAN_METHOD(BacnetValue::FromJs) {
         } else {
             const char * tagError = applicationTagToC(info[1], &type_tag);
             if (tagError) {
-                Nan::ThrowError(tagError);
+                std::ostringstream error_message;
+                error_message << tagError << ", provided was " << extractString(info[1].As<v8::String>());
+                Nan::ThrowError(error_message.str().c_str());
                 return;
             }
         }

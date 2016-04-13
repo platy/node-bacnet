@@ -272,6 +272,7 @@ const char * objectTypeToC(Local<Value> type, unsigned * index) {
     }
 }
 
+// TODO : provide enums
 // converts a value representing a bacnet value application tag to its enum value
 // returns zero on success or an error string
 const char * applicationTagToC(Local<Value> type, unsigned * index) {
