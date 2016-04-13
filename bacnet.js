@@ -44,7 +44,7 @@ bacnet.init = function init (config) {
     if (invocationCallback) {
       delete confirmedCallbacks[ this ]
       try {
-        invocationCallback.apply(null, null, arguments)
+        invocationCallback.apply(null, arguments)
       } catch (err) {
         console.log('Error in callback', err.stack)
         bacnetInterface.emit('error', err)
@@ -53,7 +53,7 @@ bacnet.init = function init (config) {
   }
 
   bacnetInterface.on('ack', function (invokeId, response) {
-    executeCallback.call(invokeId, response)
+    executeCallback.call(invokeId, null, response)
   })
 
   bacnetInterface.on('abort', function (invokeId, reason) {
