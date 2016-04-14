@@ -1,7 +1,7 @@
 {
   "name": "bacnet",
   "description": "(early stages) node wrapper for the bacnet-stack c library",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "bacnet.js",
   "scripts": {
     "configure": "node-gyp configure && npm run build",
