@@ -32,7 +32,7 @@ describe('Initialisation', function () {
       },
       device: true
     })
-    device.once('up', (err) => { 
+    device.once('up', (err) => {
       if (!err) {
         done(new Error('Second device reported as up on port which is already in use'))
       }
