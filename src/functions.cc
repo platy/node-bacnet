@@ -182,6 +182,16 @@ NAN_METHOD(readProperty) {
     }
 }
 
+// isBound(deviceId) - checks whether a deviceId is already bound and can be used to address a device
+NAN_METHOD(isBound) {
+    BACNET_ADDRESS dest = {};
+    unsigned max_apdu = 0;
+
+    int32_t device_id = info[0]->ToInt32()->Value();
+    bool bound = address_get_by_device(device_id, &max_apdu, &dest);
+    info.GetReturnValue().Set(Nan::New(bound));
+}
+
 // writeProperty(deviceId, objectType, objectId, property, arrayIndex, value [, priority])
 NAN_METHOD(writeProperty) {
     BACNET_ADDRESS dest = {};
