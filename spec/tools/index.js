@@ -32,6 +32,8 @@ exports.deviceProcess = function deviceProcess (config) {
   device.once('message', function (message) {
     if (message) { // init error
       runningDeviceMessage.bind(device)(message)
+      device.emit('up', new Error(message.event))
+      device.exit()
     } else {
       device.emit('up')
       device.on('message', runningDeviceMessage)

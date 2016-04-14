@@ -29,7 +29,7 @@ function initializeDevice (config) {
       process.send({type: 'reject', event: event})
     })
   } catch (err) {
-    return process.send({type: 'init-error', event: err.toString()})
+    return process.send({type: 'init-error', event: err.stack})
   }
   process.send(false)
 }

@@ -32,9 +32,13 @@ describe('Initialisation', function () {
       },
       device: true
     })
-    device.once('up', () => done(new Error('Second device reported as up on port which is already in use')))
+    device.once('up', (err) => { 
+      if (!err) {
+        done(new Error('Second device reported as up on port which is already in use'))
+      }
+    })
     device.once('init-error', (err) => {
-      err.should.equal('Error: Failed to initialize data link')
+      err.should.startWith('Error: Failed to initialize data link')
       done()
     })
     device.once('exit', (exitCode) => done(new Error('Bacnet client terminated prematurely with exit code : ' + exitCode)))
