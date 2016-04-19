@@ -45,16 +45,17 @@ Local<Object> iamToJ(Nan::HandleScope *scope, IamEvent *work) {
 static void IamEmitAsyncComplete(uv_async_t *req) {
     Nan::HandleScope scope;
     IamEvent work;
-    iamQueue.pop(&work);
 
-    Local<Object> iamEvent = iamToJ(&scope, &work);
-    Local<Value> argv[] = {
-        Nan::New("iam").ToLocalChecked(),
-        iamEvent
-    };
+    while (iamQueue.pop(&work)) {
+        Local<Object> iamEvent = iamToJ(&scope, &work);
+        Local<Value> argv[] = {
+            Nan::New("iam").ToLocalChecked(),
+            iamEvent
+        };
 
-    Local<Object> localEventEmitter = Nan::New(eventEmitter);
-    Nan::MakeCallback(localEventEmitter, "emit", 2, argv);
+        Local<Object> localEventEmitter = Nan::New(eventEmitter);
+        Nan::MakeCallback(localEventEmitter, "emit", 2, argv);
+    }
 }
 
 void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t vendor_id, BACNET_ADDRESS * src) {
