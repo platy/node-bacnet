@@ -36,8 +36,9 @@ function initializeDevice (config) {
 
 function handleMessage (message) {
   if (!message) { // exits on falsey
-    if (device)
+    if (device) {
       device.closeQueue()
+    }
     process.removeAllListeners()
   } else { // rpc
     device[message.method].apply(null, message.args)

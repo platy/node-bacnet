@@ -70,7 +70,7 @@ bacnet.init = function init (config) {
 
   bacnetInterface.on('error-ack', function (invokeId, error) {
     console.log('error-ack', invokeId, error)
-    executeCallback(invokeId, new Error('Error received in acknowledgment for request #' + invokeId + ' ' + error['error-class'] + '/' + err.r['error-code']))
+    executeCallback(invokeId, new Error('Error received in acknowledgment for request #' + invokeId + ' ' + error['error-class'] + '/' + error['error-code']))
   })
 
   return bacnetInterface
