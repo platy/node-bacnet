@@ -11,7 +11,7 @@ private:
     Mutex                   mutex;
     std::queue<T>           d_queue;
 public:
-    void push(T const& value) {
+    void push(const T& value) {
         ScopeGuard guard = mutex.guard_scope();
         d_queue.push(value);
     }
