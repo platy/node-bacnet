@@ -244,3 +244,7 @@ NAN_METHOD(initClient) {
 NAN_METHOD(initDevice) {
   init_device_service_handlers();
 }
+
+NAN_METHOD(closeQueue) {
+  eventEmitterClose();
+}

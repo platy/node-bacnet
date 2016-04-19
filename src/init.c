@@ -123,11 +123,13 @@ const char * init_bacnet(struct BACNET_CONFIGURATION *config) {
     }
     if (*config->iface) {
         if (!datalink_init(config->iface)) {
-            return "Failed to initialize data link";
+            fprintf(stderr, "Error %d %s \n", errno, strerror(errno)); // TODO return error code
+            return "Failed to initialize data link on specified interface";
         }
     } else {
         if (!datalink_init(0)) {
-            return "Failed to initialize data link";
+            fprintf(stderr, "Error %d %s \n", errno, strerror(errno));
+            return "Failed to initialize data link without interface";
         }
     }
     if (config->invoke_id) {

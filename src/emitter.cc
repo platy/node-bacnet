@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <stdint.h>
 #include <v8.h>
@@ -11,13 +10,13 @@
 #include "emitter.h"
 #include "listenable.h"
 #include "functions.h"
+#include "NonBlockingQueue.h"
 
 using namespace v8;
 
 static Nan::Persistent<Object> eventEmitter;
 
 struct IamEvent {
-  uv_work_t  request;
   uint32_t device_id;
   unsigned max_apdu;
   int segmentation;
@@ -30,6 +29,9 @@ static void DoNothing(uv_work_t *req) {
 }
 
 
+static NonBlockingQueue<IamEvent> iamQueue;
+static uv_async_t  iam_async;
+
 Local<Object> iamToJ(Nan::HandleScope *scope, IamEvent *work) {
     Local<Object> iamEvent = Nan::New<Object>();
     Nan::Set(iamEvent, Nan::New("deviceId").ToLocalChecked(), Nan::New(work->device_id));
@@ -40,11 +42,12 @@ Local<Object> iamToJ(Nan::HandleScope *scope, IamEvent *work) {
 }
 
 // called by libuv in event loop when async function completes
-static void IamEmitAsyncComplete(uv_work_t *req,int status) {
+static void IamEmitAsyncComplete(uv_async_t *req) {
     Nan::HandleScope scope;
-    IamEvent *work = static_cast<IamEvent *>(req->data);
+    IamEvent work;
+    iamQueue.pop(&work);
 
-    Local<Object> iamEvent = iamToJ(&scope, work);
+    Local<Object> iamEvent = iamToJ(&scope, &work);
     Local<Value> argv[] = {
         Nan::New("iam").ToLocalChecked(),
         iamEvent
@@ -52,21 +55,18 @@ static void IamEmitAsyncComplete(uv_work_t *req,int status) {
 
     Local<Object> localEventEmitter = Nan::New(eventEmitter);
     Nan::MakeCallback(localEventEmitter, "emit", 2, argv);
-
-    delete work;
 }
 
 void emit_iam(uint32_t device_id, unsigned max_apdu, int segmentation, uint16_t vendor_id, BACNET_ADDRESS * src) {
     IamEvent * event = new IamEvent();
-    event->request.data = event;
     event->device_id = device_id;
     event->max_apdu = max_apdu;
     event->segmentation = segmentation;
     event->vendor_id = vendor_id;
     event->src = src;
 
-    // kick off the worker thread
-    uv_queue_work(uv_default_loop(), &event->request,DoNothing,IamEmitAsyncComplete);
+    iamQueue.push(*event);
+    uv_async_send(&iam_async);
 }
 
 struct RPAEvent {
@@ -283,4 +283,9 @@ void emit_error(
 void eventEmitterSet(Local<Object> localEventEmitter) {
     Nan::HandleScope scope;
     eventEmitter.Reset(localEventEmitter);
+    uv_async_init(uv_default_loop(), &iam_async, IamEmitAsyncComplete);
+}
+
+void eventEmitterClose() {
+    uv_close((uv_handle_t*) &iam_async, NULL);
 }

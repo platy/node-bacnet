@@ -22,6 +22,7 @@ bacnet.init = function init (config) {
   if (config && config.device) bacnetAddon.initDevice()
   bacnetAddon.listen()
 
+  bacnetInterface.closeQueue = bacnetAddon.closeQueue
   bacnetInterface.whois = bacnetAddon.whois
   bacnetInterface.isBound = bacnetAddon.isBound
   bacnetInterface.readProperty = function (deviceInstance, objectType, objectInstance, property, arrayIndex, callback) {
@@ -68,8 +69,8 @@ bacnet.init = function init (config) {
   })
 
   bacnetInterface.on('error-ack', function (invokeId, error) {
-    console.log('error', invokeId, error)
-    executeCallback(invokeId, error)
+    console.log('error-ack', invokeId, error)
+    executeCallback(invokeId, new Error('Error received in acknowledgment for request #' + invokeId + ' ' + error['error-class'] + '/' + err.r['error-code']))
   })
 
   return bacnetInterface

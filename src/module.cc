@@ -58,6 +58,8 @@ NAN_METHOD(InitInstance) {
       Nan::GetFunction(New<FunctionTemplate>(initClient)).ToLocalChecked());
     Nan::Set(target, New("initDevice").ToLocalChecked(),
       Nan::GetFunction(New<FunctionTemplate>(initDevice)).ToLocalChecked());
+    Nan::Set(target, New("closeQueue").ToLocalChecked(),
+      Nan::GetFunction(New<FunctionTemplate>(closeQueue)).ToLocalChecked());
 
     info.GetReturnValue().Set(target);
 }
