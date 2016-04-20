@@ -1,6 +1,6 @@
 {
   "name": "bacnet",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "dependencies": {
     "nan": {
       "version": "2.2.1",
