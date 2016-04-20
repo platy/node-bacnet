@@ -29,18 +29,13 @@ Some code is additionally licensed under an MIT license.
 
 - Currently this builds for OSX and Linux (x86), it needs to be cross-platform. The c library supports most everything
   so it shouldn't be a problem.
-- We need to consider that nodejs runs native code in a thread pool and the c code is probably designed to be single
-  threaded - so Nodejs's concurrency controls will probably be relevant. The io in bip.h is blocking, I imagine having a
-  thread for sending outgoing messages and a thread listening for incoming messages.
 - We will want some high load tests to detect memory leaks and incorrect threading.
-- To have really good automated integration tests, we'd need tocreate multiple internal interfaces which support 
-  broadcast to each other so that multiple instances can use the same ports
 - Some of the bacnet-stack code is static and so we are restricted to one instance per VM - the tests spawn various 
   devices in forked VMs 
 - Many of the files I've included in the build are probably not needed and can be removed to reduce install time
 - We may want to switch to a tag of the bacnet-stack instead of the random head on the day I started the project
 - Segmentation is not supported in bacnet-stack (see below)
-- I've seen failures occasionally when making requests concurrently - where possible 
+- I've seen failures occasionally when making requests concurrently 
 
 ## Installation
 
@@ -74,9 +69,6 @@ In order to simulate devices we will also want these the opposite way around.
 6. synchronise sending requests
 7. separate the code into modules
 8. use c++11
-9. Create cross-platform tests on travisci
-9. Cross node versions
-11. Write properties
 12. Subscribe to COV
 13. Try again to get 2 devices running on 1 process
 14. Add stress tests to seek memory leaks / socket problems / queue exhaustion (events added faster than consumed in either direction)
@@ -111,3 +103,16 @@ regularly.
 
 Another option is that we find a way to get segmentation support, such as by merging this branch - 
 https://svn.code.sf.net/p/bacnet/code/branches/jbennet/bacnet-stack-0-5-7/
+
+## Known issues
+
+### Ran out of invoke ids!
+
+Ocassionally runs out of invocation IDs - the request will throw an 
+error immediately and with PRINT_ENABLED will print to console "Ran out 
+of invoke ids!" - this may not be recoverable - we have to look into how 
+the underlying c library issues and reuses the invocation ids.
+
+### Issues with concurrent BACnet requests
+
+It doesn't always happen, but at the moment its best to avoid concurrent requests.
