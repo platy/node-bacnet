@@ -3,7 +3,7 @@ const bacnet = Object.create(addon)
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
-function BACnetInstance(config) {
+function BACnetInstance (config) {
   EventEmitter.call(this)
   const bacnetAddon = addon.init(flattenConfig(config))
   bacnetAddon.initClient(this)
@@ -23,7 +23,7 @@ function setupMethods (bacnetAddon, confirmedCallbacks) {
     }
     return invokeId
   }
-  
+
   this.closeQueue = bacnetAddon.closeQueue
   this.whois = bacnetAddon.whois
   this.isBound = bacnetAddon.isBound
@@ -44,7 +44,7 @@ function setupMethods (bacnetAddon, confirmedCallbacks) {
   }
 }
 
-function setupHandlers(confirmedCallbacks) {
+function setupHandlers (confirmedCallbacks) {
   function executeCallback () {
     const invocationCallback = confirmedCallbacks[ this ]
     if (invocationCallback) {
@@ -64,17 +64,17 @@ function setupHandlers(confirmedCallbacks) {
 
   this.on('abort', function onAbort (invokeId, reason) {
     console.log('abort', invokeId)
-    executeCallback(invokeId, new Error(reason))
+    executeCallback.call(invokeId, new Error(reason))
   })
 
   this.on('reject', function onReject (invokeId, reason) {
     console.log('abort', invokeId)
-    executeCallback(invokeId, new Error(reason))
+    executeCallback.call(invokeId, new Error(reason))
   })
 
   this.on('error-ack', function onErrorAck (invokeId, error) {
     console.log('error-ack', invokeId, error)
-    executeCallback(invokeId, new Error('Error received in acknowledgment for request #' + invokeId + ' ' + error[ 'error-class' ] + '/' + error[ 'error-code' ]))
+    executeCallback.call(invokeId, new Error('Error received in acknowledgment for request #' + invokeId + ' ' + error[ 'error-class' ] + '/' + error[ 'error-code' ]))
   })
 }
 
